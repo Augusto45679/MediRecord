@@ -250,7 +250,7 @@ export const SilvanaResumenTab: React.FC = () => {
                   {eveningDose.doseDescription} · Próxima toma
                 </div>
               </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--border-subtle)', padding: '2px 8px', borderRadius: 999 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--pending-text)', background: 'var(--pending-bg)', border: '1px solid var(--pending-border)', padding: '2px 8px', borderRadius: 999 }}>
                 Aún no toca
               </span>
             </div>

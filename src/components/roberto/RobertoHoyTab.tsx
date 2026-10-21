@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
-import { Check, Clock, Mic, AlertCircle, CheckCircle2, RotateCcw, PhoneCall, Volume2, MailCheck } from 'lucide-react';
+import { Check, Clock, AlertCircle, CheckCircle2, RotateCcw, PhoneCall, Volume2, MailCheck } from 'lucide-react';
 import { OmissionModal } from './OmissionModal';
-import { VoiceModal } from './VoiceModal';
 import { InvitationReceivedScreen } from './InvitationReceivedScreen';
 
 export const RobertoHoyTab: React.FC = () => {
@@ -15,7 +14,6 @@ export const RobertoHoyTab: React.FC = () => {
   } = useMediRecord();
 
   const [omissionModalDose, setOmissionModalDose] = useState<{ id: string; name: string; time: string } | null>(null);
-  const [voiceModalDose, setVoiceModalDose] = useState<{ id: string; name: string; time: string; desc: string } | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   const { todayDoses } = state;
@@ -196,28 +194,13 @@ export const RobertoHoyTab: React.FC = () => {
                   <Check size={20} strokeWidth={3} /> Ya la tomé
                 </button>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <button
-                    className="btn-soft"
-                    onClick={() => postponeDose(targetDose.id, 10)}
-                    style={{ fontSize: 13, padding: '12px 10px' }}
-                  >
-                    <Clock size={16} /> Posponer 10 min
-                  </button>
-
-                  <button
-                    className="btn-soft"
-                    onClick={() => setVoiceModalDose({
-                      id: targetDose.id,
-                      name: targetDose.medicineName,
-                      time: targetDose.time,
-                      desc: targetDose.doseDescription
-                    })}
-                    style={{ fontSize: 13, padding: '12px 10px' }}
-                  >
-                    <Mic size={16} /> Usar mi voz
-                  </button>
-                </div>
+                <button
+                  className="btn-soft"
+                  onClick={() => postponeDose(targetDose.id, 10)}
+                  style={{ fontSize: 14, padding: '14px 16px' }}
+                >
+                  <Clock size={18} /> Posponer 10 min
+                </button>
 
                 <button
                   onClick={() => setOmissionModalDose({
@@ -450,9 +433,10 @@ export const RobertoHoyTab: React.FC = () => {
               </div>
               <span style={{
                 fontSize: 12,
-                fontWeight: 600,
-                color: eveningDose.status === 'taken' ? 'var(--color-primary)' : 'var(--color-muted)',
-                background: eveningDose.status === 'taken' ? 'var(--bg-mint)' : 'var(--border-subtle)',
+                fontWeight: 700,
+                color: eveningDose.status === 'taken' ? 'var(--color-primary)' : 'var(--pending-text)',
+                background: eveningDose.status === 'taken' ? 'var(--bg-mint)' : 'var(--pending-bg)',
+                border: eveningDose.status === 'taken' ? '1px solid transparent' : '1px solid var(--pending-border)',
                 padding: '3px 10px',
                 borderRadius: 999
               }}>
@@ -470,16 +454,6 @@ export const RobertoHoyTab: React.FC = () => {
           medicineName={omissionModalDose.name}
           doseTime={omissionModalDose.time}
           onClose={() => setOmissionModalDose(null)}
-        />
-      )}
-
-      {voiceModalDose && (
-        <VoiceModal
-          doseId={voiceModalDose.id}
-          medicineName={voiceModalDose.name}
-          doseTime={voiceModalDose.time}
-          doseDesc={voiceModalDose.desc}
-          onClose={() => setVoiceModalDose(null)}
         />
       )}
 

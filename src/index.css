@@ -26,6 +26,10 @@
   --success-bg: #E6F1EC;
   --success-text: #07564F;
 
+  --pending-bg: #EAF0EC;
+  --pending-text: #133D38;
+  --pending-border: #9CB5AA;
+
   --desktop-bg: #1B2421;
   
   --radius-screen: 36px;
@@ -43,18 +47,45 @@
   --base-font-size: 15px;
   --title-size: 20px;
   --large-title: 24px;
+  font-size: 15px;
 }
 
 .font-large {
-  --base-font-size: 17px;
-  --title-size: 22px;
-  --large-title: 26px;
+  --base-font-size: 19px;
+  --title-size: 25px;
+  --large-title: 30px;
+  font-size: 19px;
 }
 
 .font-xlarge {
-  --base-font-size: 19px;
-  --title-size: 24px;
-  --large-title: 28px;
+  --base-font-size: 23px;
+  --title-size: 29px;
+  --large-title: 36px;
+  font-size: 23px;
+}
+
+.font-large .screen-title {
+  font-size: 26px !important;
+}
+
+.font-xlarge .screen-title {
+  font-size: 32px !important;
+}
+
+.font-large .screen-subtitle {
+  font-size: 17px !important;
+}
+
+.font-xlarge .screen-subtitle {
+  font-size: 20px !important;
+}
+
+.font-large p, .font-large div:not(.status-bar-icons):not(.drag-handle), .font-large span, .font-large button, .font-large input {
+  font-size: max(1em, var(--base-font-size));
+}
+
+.font-xlarge p, .font-xlarge div:not(.status-bar-icons):not(.drag-handle), .font-xlarge span, .font-xlarge button, .font-xlarge input {
+  font-size: max(1.1em, var(--base-font-size));
 }
 
 /* High Contrast Mode */

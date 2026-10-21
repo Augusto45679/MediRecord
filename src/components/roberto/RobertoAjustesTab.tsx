@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
-import type { FontSizePreference, Medicine } from '../../types';
+import type { FontSizePreference } from '../../types';
 import { InvitationReceivedScreen } from './InvitationReceivedScreen';
 import {
   Users,
@@ -13,141 +13,12 @@ import {
   UserCheck,
   ShieldAlert,
   LogOut,
-  Pill,
-  CheckCircle2,
   ShieldCheck,
   KeyRound,
   MailCheck,
   XCircle,
   AlertCircle
 } from 'lucide-react';
-
-// ─── Inline Add-Medicine Wizard (mismo flujo que SilvanaMedicinasTab I-02→I-09) ──
-interface AddMedWizardProps {
-  onClose: () => void;
-  onSave: (med: Omit<Medicine, 'id'>) => void;
-}
-
-const AddMedWizard: React.FC<AddMedWizardProps> = ({ onClose, onSave }) => {
-  const [step, setStep] = useState(1);
-  const [name, setName] = useState('');
-  const [dose, setDose] = useState('1 comprimido de 10 mg');
-  const [time1, setTime1] = useState('09:00');
-  const [time2, setTime2] = useState('');
-
-  const handleSave = () => {
-    if (!name.trim()) return;
-    const times = [time1];
-    if (time2.trim()) times.push(time2);
-    onSave({
-      name: name.trim(),
-      dose,
-      concentration: dose.split('de ')[1] || '10 mg',
-      amount: dose.split(' de')[0] || '1 comprimido',
-      times,
-      frequency: 'Todos los días',
-      addedBy: 'Roberto',
-      status: 'active'
-    });
-    onClose();
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
-        <div className="drag-handle" />
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase' }}>
-            Paso {step} de 4
-          </span>
-          <button
-            className="btn-back"
-            onClick={() => { if (step > 1) setStep(step - 1); else onClose(); }}
-          >
-            <ArrowLeft size={14} /> {step > 1 ? 'Atrás' : 'Cancelar'}
-          </button>
-        </div>
-
-        {step === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <h2 className="screen-title" style={{ fontSize: 22 }}>¿Cómo se llama la medicina?</h2>
-            <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
-              Copiá el nombre tal como aparece en las indicaciones médicas.
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 6 }}>
-                Nombre de la medicina
-              </label>
-              <input
-                type="text"
-                placeholder="Ej. Enalapril, Atorvastatina, Omeprazol"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                style={{ width: '100%', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid var(--border-mint)', fontSize: 16, fontFamily: 'inherit', outline: 'none' }}
-              />
-            </div>
-            <button className="btn-primary" disabled={!name.trim()} onClick={() => setStep(2)} style={{ opacity: name.trim() ? 1 : 0.5 }}>
-              Continuar
-            </button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <h2 className="screen-title" style={{ fontSize: 22 }}>¿Qué cantidad tomás?</h2>
-            <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>Por cada toma, según las indicaciones. Incluí cantidad y concentración.</div>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 6 }}>Cantidad por toma</label>
-              <input
-                type="text"
-                value={dose}
-                onChange={e => setDose(e.target.value)}
-                placeholder="Ej. 1 comprimido de 10 mg"
-                style={{ width: '100%', padding: '14px 16px', borderRadius: '14px', border: '1.5px solid var(--border-mint)', fontSize: 16, fontFamily: 'inherit', outline: 'none' }}
-              />
-            </div>
-            <button className="btn-primary" onClick={() => setStep(3)}>Continuar</button>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <h2 className="screen-title" style={{ fontSize: 22 }}>¿A qué hora te toca?</h2>
-            <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>Elegí los horarios de todos los días. Formato de 24 horas.</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 4 }}>Primer horario</label>
-                <input type="time" value={time1} onChange={e => setTime1(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '14px', border: '1.5px solid var(--border-mint)', fontSize: 16, fontFamily: 'inherit' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 4 }}>Segundo horario (opcional)</label>
-                <input type="time" value={time2} onChange={e => setTime2(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '14px', border: '1.5px solid var(--border-mint)', fontSize: 16, fontFamily: 'inherit' }} />
-              </div>
-            </div>
-            <button className="btn-primary" onClick={() => setStep(4)}>Continuar</button>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <h2 className="screen-title" style={{ fontSize: 22 }}>Así quedará el recordatorio</h2>
-            <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>Revisá que coincida con las indicaciones antes de guardar.</div>
-            <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-primary-dark)' }}>{name}</div>
-              <div style={{ fontSize: 15, color: 'var(--color-muted)' }}>{dose}</div>
-              <div style={{ fontSize: 14, color: 'var(--color-primary)', fontWeight: 700 }}>
-                Todos los días a las {time1} {time2 ? `y ${time2}` : ''}
-              </div>
-            </div>
-            <button className="btn-primary" onClick={handleSave}><CheckCircle2 size={18} /> Guardar medicina</button>
-            <button className="btn-outline" onClick={() => setStep(1)}>Corregir datos</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 
@@ -157,14 +28,12 @@ export const RobertoAjustesTab: React.FC = () => {
     setFontSize,
     setHighContrast,
     setSoundEnabled,
-    setVoiceConfirmationEnabled,
     toggleFamilyLink,
-    addMedicine,
     setRole,
     showToast
   } = useMediRecord();
 
-  const [activeSubscreen, setActiveSubscreen] = useState<'main' | 'apoyo' | 'manera' | 'avisos' | 'cargar' | 'invitacion'>('main');
+  const [activeSubscreen, setActiveSubscreen] = useState<'main' | 'apoyo' | 'manera' | 'avisos' | 'invitacion'>('main');
   const [inviteCode, setInviteCode] = useState('');
 
   const handleTestSound = () => {
@@ -319,7 +188,7 @@ export const RobertoAjustesTab: React.FC = () => {
     );
   }
 
-  // ── Subscreen: A tu manera (E-10, accesibilidad) ──────────────────────────
+  // ── Subscreen: Accesibilidad (E-10, accesibilidad) ──────────────────────────
   if (activeSubscreen === 'manera') {
     const fontSizes: { id: FontSizePreference; label: string; desc: string }[] = [
       { id: 'normal', label: 'Normal', desc: 'Tamaño estándar para textos' },
@@ -336,8 +205,8 @@ export const RobertoAjustesTab: React.FC = () => {
         </div>
 
         <div>
-          <h1 className="screen-title" style={{ fontSize: 24 }}>A tu manera</h1>
-          <div className="screen-subtitle">Elegí cómo querés ver y escuchar tus recordatorios.</div>
+          <h1 className="screen-title" style={{ fontSize: 24 }}>Accesibilidad</h1>
+          <div className="screen-subtitle">Elegí cómo querés ver y configurar la interfaz.</div>
         </div>
 
         <div>
@@ -381,19 +250,6 @@ export const RobertoAjustesTab: React.FC = () => {
               type="checkbox"
               checked={state.highContrast}
               onChange={e => setHighContrast(e.target.checked)}
-              style={{ width: 22, height: 22, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: 12 }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-primary-dark)' }}>Confirmar con mi voz</div>
-              <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Habilitar micrófono para decir "Ya la tomé"</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={state.voiceConfirmationEnabled}
-              onChange={e => setVoiceConfirmationEnabled(e.target.checked)}
               style={{ width: 22, height: 22, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
             />
           </div>
@@ -465,16 +321,6 @@ export const RobertoAjustesTab: React.FC = () => {
     );
   }
 
-  // ── Subscreen: Cargar medicamentos (Task 1.2) ──────────────────────────────
-  if (activeSubscreen === 'cargar') {
-    return (
-      <AddMedWizard
-        onClose={() => setActiveSubscreen('main')}
-        onSave={(med) => addMedicine(med)}
-      />
-    );
-  }
-
   // ── Subscreen: Ver Invitación Recibida (Task 3.1 / L-06) ───────────────────
   if (activeSubscreen === 'invitacion') {
     return (
@@ -504,20 +350,14 @@ export const RobertoAjustesTab: React.FC = () => {
     {
       key: 'manera' as const,
       icon: <Eye size={20} />,
-      title: 'A tu manera',
-      subtitle: 'Tamaño de letra, contraste y voz'
+      title: 'Accesibilidad',
+      subtitle: 'Tamaño de letra y alto contraste'
     },
     {
       key: 'avisos' as const,
       icon: <Bell size={20} />,
       title: 'Avisos y sonido',
       subtitle: state.soundEnabled ? 'Sonido claro activado' : 'Sonido desactivado'
-    },
-    {
-      key: 'cargar' as const,
-      icon: <Pill size={20} />,
-      title: 'Cargar medicamentos',
-      subtitle: `${state.medicines.length} medicina${state.medicines.length !== 1 ? 's' : ''} registrada${state.medicines.length !== 1 ? 's' : ''}`
     }
   ];
 

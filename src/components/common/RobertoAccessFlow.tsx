@@ -7,7 +7,6 @@ import {
   Pill,
   User,
   Type,
-  Mic,
   Bell,
   CheckCircle2
 } from 'lucide-react';
@@ -17,7 +16,7 @@ interface RobertoAccessFlowProps {
 }
 
 export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete }) => {
-  const { setFontSize, setVoiceConfirmationEnabled, state } = useMediRecord();
+  const { setFontSize, state } = useMediRecord();
   const [step, setStep] = useState(1);
 
   const fontSizes: { id: FontSizePreference; label: string; preview: string }[] = [
@@ -70,7 +69,7 @@ export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete
             <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {[
                 { icon: <Bell size={18} />, text: 'Te avisamos a la hora exacta con una alarma clara' },
-                { icon: <CheckCircle2 size={18} />, text: 'Confirmás con un toque o con tu voz' },
+                { icon: <CheckCircle2 size={18} />, text: 'Confirmás fácilmente con un toque en pantalla' },
                 { icon: <User size={18} />, text: 'Tu hija Silvana solo recibe aviso si olvidás una toma' }
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -144,63 +143,8 @@ export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete
           </div>
         )}
 
-        {/* STEP 3: Confirmación por voz */}
+        {/* STEP 3: Listo */}
         {step === 3 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div style={{
-              width: 72, height: 72, borderRadius: '50%',
-              backgroundColor: 'var(--bg-mint)', color: 'var(--color-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <Mic size={36} />
-            </div>
-
-            <h1 style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.2, color: 'var(--color-primary-dark)', letterSpacing: -0.5 }}>
-              ¿Querés confirmar con tu voz?
-            </h1>
-
-            <p style={{ fontSize: 15, color: 'var(--color-muted)', lineHeight: 1.45 }}>
-              Podés decir «Ya la tomé» en lugar de tocar la pantalla. Útil si tenés las manos ocupadas.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <button
-                onClick={() => { setVoiceConfirmationEnabled(true); setStep(4); }}
-                style={{
-                  padding: '18px 20px', borderRadius: '18px',
-                  border: '1.5px solid var(--border-subtle)',
-                  backgroundColor: 'var(--bg-card)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left'
-                }}
-              >
-                <Mic size={24} color="var(--color-primary)" />
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>Sí, activar confirmación por voz</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2 }}>El micrófono se activa solo cuando lo tocás</div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => { setVoiceConfirmationEnabled(false); setStep(4); }}
-                style={{
-                  padding: '18px 20px', borderRadius: '18px',
-                  border: '1.5px solid var(--border-subtle)',
-                  backgroundColor: 'var(--bg-card)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left'
-                }}
-              >
-                <CheckCircle2 size={24} color="var(--color-muted)" />
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>No, confirmar con un toque</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2 }}>Un botón grande y fácil de tocar</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: Listo */}
-        {step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{
               width: 72, height: 72, borderRadius: '50%',
@@ -220,7 +164,7 @@ export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete
                 Letra: <strong>{state.fontSize === 'normal' ? 'Normal' : state.fontSize === 'large' ? 'Grande' : 'Muy grande'}</strong>
               </div>
               <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
-                Confirmación: <strong>{state.voiceConfirmationEnabled ? 'Con voz activada' : 'Con toque en pantalla'}</strong>
+                Confirmación: <strong>Con toque en pantalla</strong>
               </div>
             </div>
 
@@ -237,7 +181,7 @@ export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete
 
       {/* Indicador de paso */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 24 }}>
-        {[1, 2, 3, 4].map(s => (
+        {[1, 2, 3].map(s => (
           <div
             key={s}
             style={{

@@ -27,7 +27,7 @@ export const RobertoHistorialTab: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {todayDoses.map(dose => {
             let statusBadge = (
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', background: 'var(--border-subtle)', padding: '3px 10px', borderRadius: 999 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--pending-text)', background: 'var(--pending-bg)', border: '1px solid var(--pending-border)', padding: '3px 10px', borderRadius: 999 }}>
                 Pendiente
               </span>
             );
