@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const role = urlParams.get('role') || 'roberto';
+  const tab = urlParams.get('tab') || 'hoy';
+  const doseStatus = urlParams.get('status') || 'pending';
+
+  const defaultState = {
+    currentRole: role,
+    currentTab: tab,
+    fontSize: 'large',
+    highContrast: false,
+    soundEnabled: true,
+    vibrationEnabled: true,
+    voiceConfirmationEnabled: true,
+    silvanaAlertWaitMinutes: 60,
+    noticeAttendedBySilvana: false,
+    familyLinked: true,
+    familyCode: '482 716',
+    medicines: [
+      {
+        id: 'med-losartan',
+        name: 'Losartán',
+        dose: '1 comprimido de 50 mg',
+        concentration: '50 mg',
+        amount: '1 comprimido',
+        times: ['08:00'],
+        frequency: 'Todos los días',
+        addedBy: 'Silvana',
+        status: 'active'
+      },
+      {
+        id: 'med-metformina',
+        name: 'Metformina',
+        dose: '1 comprimido de 500 mg',
+        concentration: '500 mg',
+        amount: '1 comprimido',
+        times: ['14:00', '20:00'],
+        frequency: 'Todos los días',
+        addedBy: 'Silvana',
+        status: 'active'
+      }
+    ],
+    todayDoses: [
+      {
+        id: 'dose-today-1',
+        medicineId: 'med-losartan',
+        medicineName: 'Losartán',
+        time: '08:00',
+        doseDescription: '50 mg · 1 comprimido',
+        status: 'taken',
+        takenAt: '08:05'
+      },
+      {
+        id: 'dose-today-2',
+        medicineId: 'med-metformina',
+        medicineName: 'Metformina',
+        time: '14:00',
+        doseDescription: '500 mg · 1 comprimido',
+        status: doseStatus,
+        takenAt: doseStatus === 'taken' ? '14:02' : undefined,
+        omittedAt: doseStatus === 'omitted' ? '14:05' : undefined,
+        omissionReason: doseStatus === 'omitted' ? 'Me sentí mal' : undefined
+      },
+      {
+        id: 'dose-today-3',
+        medicineId: 'med-metformina',
+        medicineName: 'Metformina',
+        time: '20:00',
+        doseDescription: '500 mg · 1 comprimido',
+        status: 'pending'
+      }
+    ],
+    history: [
+      {
+        dateString: '2026-10-15',
+        displayDate: 'Jueves 15 de octubre',
+        isToday: true,
+        records: [
+          {
+            id: 'hist-today-1',
+            medicineName: 'Losartán',
+            doseDescription: '50 mg · 1 comprimido',
+            time: '08:00',
+            status: 'taken',
+            note: 'Registrada a las 08:05',
+            registeredAt: '08:05'
+          }
+        ]
+      },
+      {
+        dateString: '2026-10-14',
+        displayDate: 'Ayer · 14 de octubre',
+        isToday: false,
+        records: [
+          {
+            id: 'hist-yest-1',
+            medicineName: 'Losartán',
+            doseDescription: '50 mg · 1 comprimido',
+            time: '08:00',
+            status: 'taken',
+            note: 'Registrada a las 08:02',
+            registeredAt: '08:02'
+          },
+          {
+            id: 'hist-yest-2',
+            medicineName: 'Metformina',
+            doseDescription: '500 mg · 1 comprimido',
+            time: '14:00',
+            status: 'taken',
+            note: 'Registrada a las 14:00',
+            registeredAt: '14:00'
+          },
+          {
+            id: 'hist-yest-3',
+            medicineName: 'Metformina',
+            doseDescription: '500 mg · 1 comprimido',
+            time: '20:00',
+            status: 'omitted',
+            note: 'Lo indicó Roberto a las 20:10 (Me sentí mal)',
+            registeredAt: '20:10'
+          }
+        ]
+      }
+    ]
+  };
+
+  localStorage.setItem('medirecord_demo_state_v1', JSON.stringify(defaultState));
+  window.location.href = 'http://localhost:4173/';
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>MediRecord Design Viewer</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #eee;
+    }
+    header {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    select, button {
+      padding: 8px 14px;
+      font-size: 15px;
+      border-radius: 6px;
+      background: #2a2a2a;
+      color: white;
+      border: 1px solid #444;
+      cursor: pointer;
+    }
+    #container {
+      width: 100%;
+      height: 90vh;
+      overflow: auto;
+      background: #2b2b2b;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px;
+    }
+    img {
+      max-width: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>MediRecord Design Reference</h2>
+    <select id="fileSelect" onchange="loadFile()">
+      <option value="H  Menús principales.svg">H · Menús principales</option>
+      <option value="I  Carga inicial.svg">I · Carga inicial</option>
+      <option value="J  Alarma y confirmación.svg">J · Alarma y confirmación</option>
+      <option value="K  Aviso de omisión.svg">K · Aviso de omisión</option>
+      <option value="L  Vínculo y casos borde.svg">L · Vínculo y casos borde</option>
+      <option value="Journey section · Acceso Roberto.svg">Acceso Roberto</option>
+      <option value="Journey section · Acceso Silvana.svg">Acceso Silvana</option>
+      <option value="Journey section · Invitación Roberto.svg">Invitación Roberto</option>
+      <option value="Journey section.svg">Journey section (A-C)</option>
+      <option value="Journey section D.svg">Journey section D</option>
+      <option value="Journey section E.svg">Journey section E</option>
+      <option value="Journey section G.svg">Journey section G</option>
+      <option value="M · Decisiones del MVP y registro de cambios.png">M · Decisiones MVP</option>
+    </select>
+    <button onclick="zoom(1.2)">Zoom +</button>
+    <button onclick="zoom(0.8)">Zoom -</button>
+    <button onclick="resetZoom()">100%</button>
+    <button onclick="fitWidth()">Ajustar Ancho</button>
+  </header>
+  <div id="container">
+    <img id="img" src="/design-reference/H  Menús principales.svg" alt="Design Reference">
+  </div>
+  <script>
+    let scale = 1;
+    const img = document.getElementById('img');
+    const container = document.getElementById('container');
+
+    function loadFile() {
+      const val = document.getElementById('fileSelect').value;
+      img.src = '/design-reference/' + encodeURIComponent(val);
+      resetZoom();
+    }
+    function zoom(factor) {
+      scale *= factor;
+      img.style.width = (img.naturalWidth * scale) + 'px';
+    }
+    function resetZoom() {
+      scale = 1;
+      img.style.width = 'auto';
+    }
+    function fitWidth() {
+      scale = (container.clientWidth - 80) / img.naturalWidth;
+      img.style.width = (container.clientWidth - 80) + 'px';
+    }
+    img.onload = () => {
+      fitWidth();
+    }
+  </script>
+</body>
+</html>

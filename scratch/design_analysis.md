@@ -1,0 +1,971 @@
+# MediRecord Design Analysis
+
+
+## FILE: H  Menús principales.svg (170 items)
+
+- H - Menus principales
+- Roberto primero, Silvana después. Estados alternativos, no registros simultaneos.
+- RECORRIDO - Roberto  Medicinas, Ajustes y Hoy
+- H-01-Tus medicinas -solo lectura
+- H-02-Metformina-solo lectura
+- H-03-Ajustes-menu
+- H-04 - Listo por hoy · éxito
+- 14:00
+- 14:00
+- 14:00
+- 20:02
+- ?MediRecord
+- MediRecord
+- MediRecord
+- MediRecord
+- Tus medicinas
+- Ajustes
+- Listo por hoy
+- Volver
+- Losartan
+- Mi persona de apoyo
+- 3 de 3 tomas confirmadas
+- Metformina
+- 50 mg · 1 comprimido
+- Jueves 15 de octubre
+- Todos los dias -08:00
+- 1 comprimido de 500 mg
+- A tu manera
+- Todos los dias
+- Tu proxima toma es manana
+- Metformina
+- 14:00 y 20:00
+- 08:00 . Losartan
+- 500 mg - 1 comprimido
+- La cargo Silvana
+- Avisos y sonido
+- Todos los dias - 14:00 y 20:00
+- 50 mg - 1 comprimido
+- Si algo no esta bien, avisale a
+- Mi cuenta
+- Las cargo Silvana. Elegi una para ver
+- Silvana
+- Ver mis medicinas
+- los detalles.
+- Si algo no esta bien, avisale a Silvana
+- Avisarle a Silvana
+- Ayuda
+- Cerrar sesion
+- Medicinas
+- Historial
+- Ajustes
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+- H-o5.Todavia no haymedicinasvacio
+- H-06-Hola,Roberto·sin conexion
+- H-07 - Avisos y sonido · preferencias
+- 14:00
+- 14:00
+- 14:00
+- ?MediRecord
+- MediRecord
+- MediRecord
+- Todavia no hay
+- Hola, Roberto
+- Volver
+- medicinas
+- Silvana todavia no cargo tus
+- Sin conexion
+- Avisos y sonido
+- Las alarmas siguen funcionando.
+- medicinas
+- Tus registros se guardan en este
+- celular y se envian cuando vuelve
+- Sonido claro -Activado
+- Cuando las cargue, vas a ver aca tus
+- la conexion.
+- La alarma dice qué medicina te
+- recordatorios.
+- toca.
+- Avisarle a Silvana
+- 14:00 - Metformina
+- Probar sonido
+- 500 mg - 1 comprimido
+- Recordar otra vez
+- Ya la tome
+- A los 10 minutos, si lo pedis.
+- Silvana vera la actualizacion cuando
+- vuelva la conexion.
+- Guardar preferencias
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+- RECORRIDO - Silvana  Medicinas de Roberto y ajustes
+- H-08-MedicinasdeRoberto-lista activa
+- H-o9-Medicinas de Roberto -alternativa
+- H-10 - Ajustes - menu
+- H-11-Avisos ·preferencias
+- 14:00
+- 14:00
+- 14:00
+- 14:00
+-  MediRecord -Familiar
+-  MediRecord -Familiar
+- MediRecord -Familiar
+-  MediRecord -Familiar
+- Medicinas de Roberto
+- Ajustes
+- Medicinas deRoberto
+- Volver
+- Losartan · Activa
+- Roberto .Vinculo
+- Avisos
+- 50 mg - 1 comprimido
+- Losartan · Activa
+- 08:00 - Editar medicina
+- 50 mg - 1 comprimido - 08:00
+- iCuanto esperamos antes de
+- Avisos
+- avisarte?
+- Metformina - Activa
+- Metformina - Pausada
+- 30 minutos
+- 500 mg - 1 comprimido
+- 500 mg - 1 comprimido
+- Mi cuenta
+- 14:00y 20:00.Editarmedicina
+- 14:00 y 20:00 - Sin recordatorios
+- Elegir esta espera
+- Ayuda
+- Anadir medicina
+- Anadir medicina
+- 60 minutos - Elegido
+- Desde la hora de la toma.
+- Elegi una medicina para editarla.
+- Escenario alternativo despues de
+- Cerrar sesion
+- pausar Metformina.
+- 90 minutos
+- Elegir esta espera
+- Sonido - Activado
+- Vibracion - Activada
+- Solo te avisamos ante una omision. Si
+- Roberto confirma tarde,se actualiza
+- Resumen
+- Medicinas
+- Historial
+- Ajustes
+- Resumen
+- Medicinas
+- Historial
+- Ajustes
+- ese mismo aviso.
+- Resumen
+- Medicinas
+- Historial
+- Ajustes
+- Guardar preferencias
+- H-12-RobertoGomez·sinomisiones
+- 14:02
+
+## FILE: I  Carga inicial.svg (116 items)
+
+- I - Carga inicial
+- Silvana · Después de F-o5 y del consentimiento de Roberto. Copia las indicaciones médicas que ya tiene.
+- RECORRIDO-SilvanaPrimera cargayhorarios
+- I-01 - Roberto acepto - vacio
+- I-02 · zComo se llama la medicina? -paso
+- I-03 - zQué cantidad toma? - paso 2
+- I-04 - A que hora le toca? - paso 3
+- 14:00
+- 14:00
+- 14:00
+-  MediRecord-Familiar
+- 14:00
+-  MediRecord-Familiar
+-  MediRecord ·Familiar
+- Roberto acepto
+- yMediRecord·Familiar
+- Volver
+- Volver
+- Volver
+- Ya estan vinculados
+- Paso 2 de 4
+- Paso 3 de 4
+- Paso 1 de 4
+- Roberto te dio permiso para cargar
+- sus medicinas y horarios.
+- zQué cantidad toma?
+- iA qué hora le toca?
+- zComo se llama la
+- Todavia no hay medicinas
+- Por cada toma, segun sus indicaciones.
+- Elegi horarios de todos los dias.
+- medicina?
+- Cantidad por toma
+- Primer horario
+- Cargar la primera medicina
+- Copia el nombre tal como aparece en
+- sus indicaciones.
+- 1 comprimido de 500 mg
+- 14:00
+- Nombre de la medicina
+- Inclui cantidadyconcentracion.
+- Metformina
+- Segundo horario
+- Continuar
+- 20:00
+- Continuar
+- Toca una hora para cambiarla.
+- Agregar otro horario
+- Continuar
+- I-o5·Asiquedaraelrecordatorio·paso4
+- I-06 - Listo, medicina guardada - éxito
+- I-o7.Gestionarhorarios-ordendeldia
+- I-o8·zPausarMetformina?·confirmacion
+- 14:00
+- 14:00
+- 14:00
+- 14:00
+- MediRecord·Familiar
+-  MediRecord -Familiar
+- MediRecord - Familiar
+- MediRecord - Familiar
+- Volver
+- Listo, medicina
+- Volver
+- Volver
+- guardada
+- Paso 4 de 4
+- Listo, Roberto recibira su
+- Gestionar horarios
+- :Pausar Metformina?
+- recordatorio a las 14:00 y
+- Roberto -Todos los dias
+- Roberto dejara de recibir sus
+- Asi quedara el
+- 20:00
+- recordatorios de las 14:00 y
+- recordatorio
+- 08:00 - Losartan
+- 20:00.
+- Metformina
+- 50 mg - 1 comprimido - Editar
+- La medicina y el historial se conservan.
+- Metformina
+- 1 comprimido de 500 mg
+- horario
+- Podés reactivarla cuando corresponda.
+- 1 comprimido de 500 mg
+- Si, pausar medicina
+- Todos los dias
+- Cargar otra medicina
+- 14:00 - Metformina
+- 14:00 y 20:00
+- 500 mg - 1 comprimido - Editar
+- horario
+- Ir al resumen
+- Cancelar
+- indicaciones.
+- Revisa que coincida con sus
+- 20:00 -Metformina
+- Guardar
+- 500 mg - 1 comprimido - Editar
+- horario
+- Corregir
+- I-09·2EliminarMetformina?
+- confirmacion
+- 14:00
+- MediRecord-Familiar
+- Volver
+- Eliminar Metformina?
+- Se quitara de sus medicinas y
+- no habra mas recordatorios a
+- las 14:00 y 20:00.
+- Lastomasanterioresseconservanen
+- el historial.
+- Si, eliminar medicina
+- Cancelar
+
+## FILE: J  Alarma y confirmación.svg (69 items)
+
+- J - Alarma y confirmacion
+- Roberto : La alarma oficial esta en C-O4. Sonido, voz y notificaciones se representan visualmente; no se ejecutan
+- RECORRIDO - Roberto  Notificacion, omision explicita y registro tardio
+- J-01-Jueves 15 de octubre-pantalla
+- J-02 - zSeguro que no la tomaste? .
+- J-03-No te escuché bien -error de voz
+- J-04 . Toma registrada - éxito tardio
+- bloqueada
+- confirmacion
+- 14:00
+- 15:20
+- 14:00
+- 14:00
+- MediRecord
+-  MediRecord
+- ? MediRecord
+- MediRecord
+- No te escuché bien
+- Toma registrada
+- Jueves 15 de octubre
+- Volver
+- Metformina - 14:00
+- Metformina - 14:00
+- 14:00
+- iSeguro que no la
+- Tu toma todavia no quedo
+- 500 mg - 1 comprimido
+- tomaste?
+- registrada.
+- Registrada con retraso a
+- MediRecord · Ahora
+- las 15:20
+- Metformina - 14:00
+- Probar de nuevo
+- Metformina
+- 500 mg - 1 comprimido
+- Silvana recibe la actualizacion: el aviso
+- queda resuelto. No hace falta que la
+- Te toca 1 comprimido de 500 mg a
+- las 14:00.
+- Usar el boton
+- llames para confirmar.
+- Silvana va a saber que hoy no la
+- Alarma sonora: Roberto, te toca
+- tomaste
+- También podés confirmar sin usar la
+- Volver a Hoy
+- Metformina.
+- voz.
+- Si querés, elegi un motivo. Es opcional.
+- Abri el recordatorio para confirmar tu
+- toma.
+- Me olvidé
+- Me senti mal
+- Otro motivo
+- Confirmar: no la tome
+- Volver sin cambiar
+- J-05 -Quedo como no tomada -omision
+- explicita
+- 14:05
+- ? MediRecord
+- Quedo como no tomada
+- Metformina - 14:00
+- No tomada
+- Lo indicaste a las 14:05.
+- Silvana recibe un aviso ahora con lo
+- que nos contaste.
+- Volver a Hoy
+- Corregir si fue un error
+
+## FILE: Journey section D.svg (74 items)
+
+- D - Registrar con confianza — Roberto (alternativas A y B)
+- Alt. A -→ confirmacion por voz (D-05) y toma registrada a las 14:02 (D-06). Alt. B → sin confirmar a las 15:00 (D-07), aviso a Silvana y historial (D-08). Solo Roberto puede confirmar sus
+- tomas. Sin confirmar ± no tomada.
+- D-o5 - Confirmar por voz
+- D-06 - Toma registrada / A
+- D-07 - Sin confirmacion / B
+- D-08 -Historial/alternativa B
+- 14:02
+- 14:02
+- 15:00
+- 15:00
+- ? MediRecord
+- ?MediRecord
+-  MediRecord
+- ? MediRecord
+- Te escucho
+- Esta toma sigue sin
+- Tus registros
+- confirmar
+- Jueves 15 de octubre
+- Metformina - 14:00
+- 500 mg - 1 comprimido Jueves 15
+- Toma registrada
+-  Anterior
+- Siguiente
+- de octubre
+- Metformina
+- 08:00 - Losartan
+- 14:00 . Metformina
+- 500 mg - 1 comprimido
+- Programada a las 14:00
+- 500 mg - 1 comprimido
+- 50 mg - 1 comprimido
+- O Registrada a las 14:02
+-  No registrada
+- Registrada a las 08:05
+- Esta toma ya esta guardada.No hace
+- No sabemos si la tomaste.≤No
+- 14:00 . Metformina
+- Deci: "Ya la tomé
+- falta registrarla otra vez.
+- registrada》no significa《No tomada》.
+-  Sin confirmar
+- Estoy escuchando tu confirmacion de
+- Tu proxima toma
+- Aviso enviado a Silvana
+- 500 mg - 1 comprimido
+- esta toma.
+- Sin hora de registro
+- 20:00 - Metformina
+- A las 15:00, porque falto tu
+- 500 mg - 1 comprimido
+- confirmacion de las 14:00.
+- La toma de las 20:00 aun es proxima.
+- Cancelar escucha
+- No es una toma omitida.
+- zPreferis usar el boton?
+-  Volver a Hoy
+-  Volver a Hoy
+- Ayer - 14 de octubre
+- / Ya la tome
+- hDeshacerregistro
+- R Llamar a Silvana
+- 20:00 . Metformina
+- O No tomada
+- Si elegisteNo latoméw,el estado sera
+- Usa Deshacer si la marcaste por error.
+- No tomada, noSin confirmar》.
+- 500 mg - 1 comprimido
+- Lo indicaste a las 20:10
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+
+## FILE: Journey section E.svg (49 items)
+
+- E - Decidir y adaptar  Roberto gestiona su apoyo y accesibilidad
+- Roberto puede retirar el permiso de Silvana, cambiar de persona de apoyo y ajustar sus preferencias de accesibilidad. Texto grande y contraste legible desde el primer uso
+- E-09-Mi persona de apoyo
+- E-10·Atumanera
+- 14:00
+- 14:00
+- MediRecord
+- MediRecord
+- Volver
+- Volver
+- Mi persona de apoyo
+- A tu manera
+- Elegi como querés ver y escuchar tus
+- Silvana Gomez
+- recordatorios.
+- O Vinculada con tu permiso
+- Tamano de letra: grande
+- Puede ver tus medicinas, horarios y
+- Aumentar letra A+
+- registros, y ayudarte a configurarlos.
+- Solo recibeavisos si no confirmas una
+- toma o si indicas que no la tomaste.
+- 14:00 - Metformina 1
+- comprimido
+- Q Cambiar de persona
+- Alto contraste
+- zDesvincular a Silvana?
+- Texto oscuro sobre fondo claro.
+- Dejara de ver tus datos y de recibir
+- avisos. Tus recordatorios y
+- registros seguiran en tu app.
+- Sonido claro
+- Si, desvincular
+- Recordatorio audible activado.
+- No, mantener vinculo
+- ) Probar sonido
+- Tu permiso sigue activo hasta que
+- Confirmar por voz
+- confirmes.
+- El microfono se abre solo al tocarlo.
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+- Guardar preferencias
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+
+## FILE: Journey section G.svg (75 items)
+
+- G - Familiar acompanando  Silvana accede tras el consentimiento de Roberto
+- Silvana Gomez - Cuenta vinculada con permiso de Roberto - Alternativa B: aviso solo por falta de confirmacion de la toma de las 14:oO. Solo Roberto puede confirmar sus tomas.
+- G-11-Resumen de Roberto
+- G-12- Editar medicina y horario
+- G-13 · Aviso sin confirmar
+- 15:00
+- 15:05
+- 15:00
+- ? MediRecord -Familiar
+-  MediRecord -Familiar
+-  MediRecord - Familiar
+- Roberto Gomez
+- Medicina de Roberto
+- Roberto no confirmo
+- 1 de 3 tomas confirmadas
+- Copia las indicaciones médicas que ya
+- Roberto Gomez
+- tiene. La app no indica ni cambia
+- Jueves 15 de octubre
+- tratamientos.
+- Vinculado con su permiso
+- Metformina
+- Todos los campos son obligatorios.
+-  Una toma sin confirmar
+- Nombre de la medicina
+- 500 mg - 1 comprimido
+- Programada a las 14:00
+- 14:00 - Metformina
+- Metformina
+- O Sin confirmar : Hace 1 hora
+- No hay registro. No sabemos si la
+- tomo.
+- Cantidad por toma
+- Aviso enviado a las 15:00. Puede que
+- → Revisar aviso
+- 1 comprimido de 500 mg
+- la haya tomado.No confirmar no
+- significa no tomar.
+- Inclui cantidad y concentracion.
+- Las otras tomas de hoy
+- & Llamar a Roberto
+- Frecuencia diaria
+- 08:00 - Losartan
+- 2 veces al dia
+- C Ya hablé con Roberto
+- Primer horario
+- Otro horario
+- Al tocarlo, el aviso queda atendido. La
+- 50 mg - 1 comprimido - 08:05
+- tomasiguesinconfirmar:soloRoberto
+- 14:00
+- 20:00
+- puede registrarla.
+- 20:00 - Metformina
+- Usaformatode24horas.Cadahorario
+- debe ser diferente.
+- Volver al resumen
+-  Proxima - aun no toca
+- 500 mg - 1 comprimido
+- Asi quedara el recordatorio
+- Metformina - 1 comprimido de 500
+- Anadir medicina
+- mg, todos los dias a las 14:00 y a
+- las 20:00.
+-  Gestionar horarios
+- Guardar cambios
+- Resumen
+- Medicinas
+- Historial
+- Ajustes
+- Cancelar
+- Pausar medicina
+- Eliminar medicina
+- Antes de pausar o eliminar, te pedimos
+- confirmarquepasaconsus recordatorios.
+
+## FILE: Journey section · Acceso Roberto.svg (49 items)
+
+- A - Acceso  Iniciar sesion o crear cuenta
+- Roberto abre la app por primera vez. Elegi crear cuenta con Google y selecciona su rol de persona mayor que toma medicinas.
+- A-01 - Acceso
+- A-02 - Crear cuenta con Google
+- A-03-Seleccion de rol
+- 00:6
+- 9:01
+- 9:02
+- ? MediRecord
+- MediRecord
+- Cuenta nueva
+- MediRecord
+- Cuenta de Google
+- Roberto Gomez
+- Tus medicinas, a tu
+- Tus medicinas, a tu ritmo.
+- Recordacadatomayregistralacuando
+- roberto.gomez@gmail.com
+- ritmo.
+- la hayas tomado.
+- V Cuenta verificada
+- Recorda cada toma y registra
+- cuando la hayastomado.
+- G Continuar con Google
+- para identificarte. No publicamos nada
+- Usaremos tu cuenta de Google solo
+- ni accedemos a tu correo.
+- zComo vas a usar MediRecord?
+- O usa tu correo
+- Correo electronico
+- 8 Tomo medicinas
+- Usar esta cuenta
+- roberto@ejemplo.es
+- Q Soy familiar o cuidador
+- Contrasena
+- Elegir otra cuenta
+- Vos decidis quien te acompana.
+- Tus datos,seguros
+- Podés usar la app sin vincular a
+- Entrar
+- Tus medicinas y registros se guardan
+- otra persona.
+- solo en tu cuenta. Nadie mas puede
+- verlos salvo quien vos autorices.
+- Crear cuenta nueva
+- Empezamos paso a paso. Sin
+- formularios largos.
+- Empezamospasoapaso.Sinformularios
+- largos.
+
+## FILE: Journey section · Acceso Silvana.svg (82 items)
+
+- F - Acceso  Silvana inicia sesion y selecciona su rol
+- Silvana abre MediRecord por primera vez. Crea cuenta con Google, selecciona el rol familiar y envia la invitacion a Roberto.
+- F-01 - Acceso
+- F-02-Crear cuenta con Google
+- F-03 -Seleccion de rol -Silvana elige
+- F-04 - Enviar invitacion a Roberto
+- familiar
+- 8:50
+- 8:51
+- 8:53
+- 8:52
+- ? MediRecord
+-  MediRecord ·Familiar
+- MediRecord
+- Cuenta nueva
+- Invitar a tu familiar
+- Tu familiar recibira una notificacion.
+- MediRecord
+- Cuenta de Google
+- Solo podras ver sus datos cuando
+- Silvana Gomez
+- acepte.
+- Acompana a quien queres.
+- Tus medicinas, a tu
+- Acompana el tratamiento de tu familiar
+- silvana.gomez@gmail.com
+- Nombre de tu familiar
+- con su permiso.
+- V Cuenta verificada
+- ritmo.
+- Roberto Gomez
+- Usaremos tu cuenta de Google solo
+- zComo vas a usar MediRecord?
+- G Continuar con Google
+- para identificarte. No publicamos nada
+- Telefono o correo de tu familiar
+- 8 Tomo medicinas
+- O usa tu correo
+- ni accedemos a tu correo.
+- roberto.gomez@gmail.com
+- Correo electronico
+-  Usar esta cuenta
+- 8 Soy familiar o cuidador
+- 716
+- Leenviaremosuncodigodeinvitacion:482
+- silvana@ejemplo.es
+- Contrasena
+- Elegir otra cuenta
+- Necesitas el permiso de tu
+- zQué podras ver si acepta?
+- familiar.
+- Sus medicinas, horarios y registros.
+- Enviaras una invitacion. Solo
+- Solo recibiras avisos si falta una
+- podras acceder cuando la acepte.
+- confirmacion o si Roberto indica
+- Entrar
+- que no la tomo.
+- El acceso familiar siempre requiere el
+- Crear cuenta nueva
+- consentimiento de la persona mayor.
+-  Enviar invitacion
+- Cancelar
+- F-05-Espera de consentimiento
+- 8:54
+- ?MediRecord ·Familiar
+- Invitacion enviada
+- Roberto Gomez
+- roberto.gomez@gmail.com
+- D Esperando su permiso
+- Codigo de invitacion: 482 716
+- Roberto recibira una notificacion.
+- Cuando acepte, podras ver sus
+- medicinas y registros.
+- No podés acceder a sus datos hasta
+- que de su consentimiento.
+- Invitacionenviadaalas8:53
+- Te avisaremos cuando Roberto
+- responda.
+- Reenviar invitacion
+- Podés cerrar la app. Te avisaremos
+- cuando Roberto responda.
+
+## FILE: Journey section · Invitación Roberto.svg (34 items)
+
+- B - Invitacion  Roberto recibe y aprueba el vinculo con Silvana
+- Roberto,9:O3-recibe la invitacion de Silvana.Revisa la informacion,acepta vincularla yla app confirma el vinculo.
+- B-01·Darpermiso
+- B-02 .Vinculo confirmado
+- 9:03
+- 9:03
+- O MediRecord
+- MediRecord
+- Elegi tu apoyo
+- Roberto, recibiste una invitacion de tu
+- hija.
+- Ya estan vinculados
+- Silvana Gomez
+- Codigo: 482 716
+- Silvana Gomez
+- 8 Pendiente de tu permiso
+- 白 Vinculada con tu permiso
+- Puede ver tus medicinas y registros.
+- Si aceptas, Silvana podra ver tus
+- Solo recibe avisos si no confirmas una
+- medicinas, horarios y registros, y
+- toma o siindicasque no latomaste
+- ayudarte a configurarlos.
+- Podés gestionar o retirar este permiso
+- Solo recibe avisos si no confirmas
+- en cualquier momento desde Ajustes.
+- una toma o si indicas que no la
+- registrada.
+- tomaste.No por cada toma
+- Elegir tamano de letra
+- Podés cambiar de persona o retirar el
+- permiso en Ajustes.
+- / Si, vincular a Silvana
+- Continuar sin vincular
+
+## FILE: Journey section.svg (39 items)
+
+- C - Uso diario  Roberto - Empezar y recordar
+- Roberto Gomez - Jueves 15 de octubre de 2026 - C-03: Hoy. C-04: alarma de las 14:00. Acceso y permiso oficiales en A-03 y B-01.
+- C-03-Hoy/toma pendiente
+- C-04 -Alarma sonora
+- 14:00
+- 14:00
+- ? MediRecord
+- ? MediRecord
+- Hola, Roberto
+- Es hora de tu toma
+- Jueves 15 de octubre
+- Metformina
+- 1 de 3 tomas registradas
+- 14:00
+- ' Ahora te toca
+- 14:00
+- 500 mg - 1 comprimido
+- Alarmasonora:Roberto,tetoca
+- Metformina
+- Metformina>.
+- 500 mg - 1 comprimido
+- Ya la tome
+- V Ya la tome
+- Recordarmelo en10 minutos
+- Usarmivoz
+- Escuchar
+- 08:00 - Losartan
+- Confirmar con mivoz
+- 1comprimido de 50 mg:08:05
+- No la tome
+- 20:00 - Metformina
+- Para usar la voz, toca el microfono y deci
+-  Proxima toma
+- 《Ya la tomew.
+- 1 comprimido de 500 mg
+- Hoy
+- Medicinas
+- Historial
+- Ajustes
+
+## FILE: K  Aviso de omisión.svg (80 items)
+
+- K - Aviso de omision
+- Silvana · Aviso a las 15:00 por la toma de las 14:00. Sin confirmar no significa no tomada. Estados alternativos del mismo aviso.
+- RECORRIDO - Silvana  Entrega, atencion, resolucion e historial
+- K-01-Jueves 15 de octubre - pantalla
+- K-o2·Avisoatendido-sinconfirmar
+- K-03-Aviso resuelto -éxito
+- K-o4.HistorialdeRoberto-sololectura
+- bloqueada
+- 15:10
+- 15:20
+- 15:00
+- 15:00
+-  MediRecord-Familiar
+-  MediRecord -Familiar
+-  MediRecord -Familiar
+- ? MediRecord -Familiar
+- Historial de Roberto
+- Jueves 15 de octubre
+- Volver
+- Volver
+- Esta semana: 12 de 14
+- 15:00
+- Aviso atendido
+- Aviso resuelto
+- tomas confirmadas
+- Metformina - 14:00
+- Metformina - 14:00
+- Jueves15deoctubre
+- MediRecord-Enviado 15:00
+- Ya hablaste con Roberto
+- Tomada
+- Marcado como atendido a las
+- Roberto no confirmo su toma de
+- 15:10.
+- Roberto confirmo a las 15:20.
+- Elegir dia
+- Metformina de las 14:00. Puede
+- Registrada con retraso.
+- que la haya tomado.
+- La toma sigue sin confirmar.Solo
+- Se actualizo el aviso enviado a las
+- 08:00 . Losartan - Tomada
+- El aviso llego 60 minutos después de
+- Roberto puede registrar si la tomo
+- 15:00. Ya no queda pendiente.
+- 50 mg - 1 comprimido - Registrada
+- la hora de la toma.
+- 08:05
+- No se vuelve a enviar este aviso.
+- Ir al resumen
+- Ir al resumen
+- 14:00 - Metformina
+- Sin confirmar - 500 mg - 1
+- comprimido
+- La de las 20:00 todavia no toca.
+- Ayer - 14 de octubre
+- 20:00 - Metformina - No
+- tomada
+- Lo indico Robertoa las20:10.
+- Sinconfirmar:nosabemossilatomo
+- No tomada: Roberto lo indico.
+- Resumen
+- Medicinas
+- Historial
+- Ajustes
+- K-05 - Roberto indico que no la tomo -
+- aviso explicito
+- 14:05
+-  MediRecord -Familiar
+- Volver
+- Roberto indico que no
+- la tomo
+- Metformina - 14:00
+- No tomada
+- Roberto lo indico a las 14:05.
+- Este aviso no es por falta de
+- confirmacion. Roberto confirmo que no
+- tomo esta dosis.
+- Llamar a Roberto
+- Ya hablé con Roberto
+
+## FILE: L  Vínculo y casos borde.svg (96 items)
+
+- L - Vinculo y casos borde
+- Roberto - Primer uso y permisos. Silvana - Consentimiento y recuperacion del vinculo. No se muestran datos sin permiso.
+- RECORRIDO - Roberto  Cédigo, accesibilidad y permisos antes de Hoy
+- L-01 - Ingresa el codigo de invitacion :
+- L-02 - Elegi tu tamano de letra - primer
+- L-03.Que no se te pase tu toma -
+- L-o4-Confirma con tu voz·permiso
+- ingreso de codigo
+- uso
+- permiso de avisos
+- opcional
+- 14:00
+- 14:00
+- 14:00
+- 14:00
+- MediRecord
+- ? MediRecord
+- ? MediRecord
+- ? MediRecord
+- Elegi tu tamano de letra
+- Confirma con tu voz
+- Volver
+- Que no se te pase tu
+- toma
+- Asi vas a ver tus recordatorios.Podées
+- Si querés, podés decir "Ya la
+- Ingresa el codigo de
+- cambiarlo después.
+- Para avisarte cuando tomar
+- toméw en vez de tocar el
+- invitacion
+- tus medicinas
+- boton.
+- Grande
+- Pedile a Silvana el codigo de 6
+- Metformina : 1 comprimido
+- El microfono se usa solo cuando vos lo
+- numeros.
+- Avisos y sonido
+- activas. En el proximo cartel podés
+- permitirlo.
+- Mas grande - Elegido
+- Vas a escuchar una alarma clara
+- 482716
+- con el nombre de la medicina.
+- Continuar
+- Metformina
+- En el proximo cartel, elegi permitir las
+- Revisar invitacion
+- 1 comprimido
+- notificaciones y el sonido.
+- Prefiero usar el boton
+- Continuar
+- Muy grande
+- Metformina
+- Después: permiso del celular → Hoy.
+- 1 comprimido
+- Usar este tamano
+- Borrar
+- RECORRIDO-SilvanaEstadosdelainvitacion
+- L-07 - Roberto retiro el permiso - sin
+- rechazada
+- L-o5-Robertorechazolainvitacion:
+- L-06 -La invitacion vencio -vencida
+- 14:00
+- acceso
+- 14:00
+- 14:00
+-  MediRecord -Familiar
+-  MediRecord -Familiar
+- MediRecord-Familiar
+- La invitacion vencio
+- Roberto rechazo la
+- Roberto retiro el
+- invitacion
+- Roberto todavia no dio su
+- permiso
+- permiso. No tenés acceso a sus
+- datos.
+- Por ahora no podés ver sus
+- Ya no podés ver sus
+- medicinas ni registros.
+- Reenvia la invitacion para que reciba un
+- medicinas ni recibir avisos.
+- codigo nuevo.
+- Respeta su decision. Si lo acuerdan,
+- Sus alarmas y registros siguen en su
+- podés enviarle una nueva invitacion.
+- app. Si vuelven a acordarlo, podés
+- Reenviar invitacion
+- invitarlo otra vez.
+- Volver
+- Volver
+- Volver
+- Reenviar si lo acordaron
+- Reenviar si lo acordaron
