@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
-import { Check, Clock, AlertCircle, CheckCircle2, RotateCcw, PhoneCall, Volume2, MailCheck } from 'lucide-react';
+import { Check, Clock, AlertCircle, CheckCircle2, RotateCcw, PhoneCall, MailCheck } from 'lucide-react';
 import { OmissionModal } from './OmissionModal';
 import { InvitationReceivedScreen } from './InvitationReceivedScreen';
 
@@ -26,14 +26,6 @@ export const RobertoHoyTab: React.FC = () => {
 
   const handleSimulateCall = () => {
     showToast('Llamando a Silvana Gómez...', 'info', 'Conectando llamada de voz con tu hija Silvana.');
-  };
-
-  const handleSimulateAlarmSound = () => {
-    showToast(
-      'Alarma sonora reproducida',
-      'sound',
-      'Voz clara: "Roberto, te toca Metformina, 1 comprimido de 500 miligramos".'
-    );
   };
 
   return (
@@ -97,38 +89,18 @@ export const RobertoHoyTab: React.FC = () => {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 14px',
+          gap: 10,
+          padding: '12px 16px',
           borderRadius: '16px',
           background: 'var(--bg-mint)',
           color: 'var(--color-primary-dark)',
           fontSize: 14,
           fontWeight: 600,
-          gap: 10,
-          flexWrap: 'wrap',
           minHeight: 44,
           height: 'auto'
         }}>
-          <span style={{ wordBreak: 'break-word' }}>{takenCount} de 3 tomas registradas</span>
-          <button
-            onClick={handleSimulateAlarmSound}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--color-primary)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              fontSize: 12,
-              fontWeight: 700,
-              padding: '4px 6px',
-              borderRadius: '8px',
-              flexShrink: 0
-            }}
-          >
-            <Volume2 size={16} /> Probar alarma
-          </button>
+          <CheckCircle2 size={18} color="var(--color-primary)" />
+          <span style={{ wordBreak: 'break-word' }}>{takenCount} de 3 tomas registradas hoy</span>
         </div>
       )}
 
@@ -208,24 +180,22 @@ export const RobertoHoyTab: React.FC = () => {
                 </button>
 
                 <button
+                  className="btn-outline"
                   onClick={() => setOmissionModalDose({
                     id: targetDose.id,
                     name: targetDose.medicineName,
                     time: targetDose.time
                   })}
                   style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'var(--color-muted)',
-                    fontSize: 14,
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    padding: '8px 0',
-                    textAlign: 'center',
-                    fontWeight: 500
+                    minHeight: 48,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    borderColor: '#C4D9D1',
+                    color: 'var(--color-primary-dark)',
+                    justifyContent: 'center'
                   }}
                 >
-                  No la tomé
+                  <AlertCircle size={18} color="var(--color-muted)" /> No la tomé
                 </button>
               </div>
             </div>
@@ -257,21 +227,27 @@ export const RobertoHoyTab: React.FC = () => {
               </div>
 
               <button
-                onClick={() => undoDoseStatus(targetDose.id)}
+                className="btn-outline"
+                onClick={() => {
+                  undoDoseStatus(targetDose.id);
+                  showToast('Toma restablecida', 'info', 'La toma volvió a estar pendiente.');
+                }}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--color-muted)',
-                  fontSize: 13,
-                  cursor: 'pointer',
+                  minHeight: 46,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
-                  marginTop: 12,
-                  textDecoration: 'underline'
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginTop: 14,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  width: '100%',
+                  borderColor: 'var(--border-mint)',
+                  background: '#FFFFFF',
+                  color: 'var(--color-primary-dark)'
                 }}
               >
-                <RotateCcw size={14} /> Deshacer registro si fue un error
+                <RotateCcw size={16} /> ¿Fue un error? Deshacer registro
               </button>
             </div>
           )}
@@ -303,22 +279,27 @@ export const RobertoHoyTab: React.FC = () => {
               </div>
 
               <button
-                onClick={() => undoDoseStatus(targetDose.id)}
+                className="btn-outline"
+                onClick={() => {
+                  undoDoseStatus(targetDose.id);
+                  showToast('Toma restablecida', 'info', 'La toma volvió a estar pendiente.');
+                }}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--alert-red-text)',
-                  fontSize: 13,
-                  cursor: 'pointer',
+                  minHeight: 46,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
-                  marginTop: 12,
-                  textDecoration: 'underline',
-                  fontWeight: 600
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginTop: 14,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  width: '100%',
+                  borderColor: 'var(--alert-red-border)',
+                  background: '#FFFFFF',
+                  color: 'var(--alert-red-text)'
                 }}
               >
-                <RotateCcw size={14} /> Corregir si fue un error
+                <RotateCcw size={16} /> ¿Fue un error? Deshacer registro
               </button>
             </div>
           )}
@@ -361,23 +342,23 @@ export const RobertoHoyTab: React.FC = () => {
                   <PhoneCall size={16} /> Llamar a Silvana
                 </button>
                 <button
+                  className="btn-outline"
                   onClick={() => setOmissionModalDose({
                     id: targetDose.id,
                     name: targetDose.medicineName,
                     time: targetDose.time
                   })}
                   style={{
-                    background: 'transparent',
-                    border: 'none',
+                    minHeight: 48,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    borderColor: '#F5DCB0',
+                    background: '#FFFFFF',
                     color: '#76500E',
-                    fontSize: 14,
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                    fontWeight: 600
+                    justifyContent: 'center'
                   }}
                 >
-                  No la tomé
+                  <AlertCircle size={18} /> No la tomé
                 </button>
               </div>
             </div>

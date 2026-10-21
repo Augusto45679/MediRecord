@@ -70,6 +70,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
       status: editingMed.status
     });
     setEditingMed(null);
+    setSelectedMed(null);
     showToast('Cambios guardados', 'success', `${editingMed.name} fue actualizada.`);
   };
 
@@ -110,105 +111,137 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
     );
   };
 
-  // If viewing details of a medicine for Roberto (Screen H-02)
-  if (selectedMed) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <button className="btn-back" onClick={() => setSelectedMed(null)}>
-            <ArrowLeft size={16} /> Volver
-          </button>
-        </div>
-
-        <div>
-          <h1 className="screen-title" style={{ fontSize: 26 }}>
-            {selectedMed.name}
-          </h1>
-          <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
-            Detalles de tu medicina
-          </div>
-        </div>
-
-        <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--color-primary)', fontWeight: 700 }}>
-              Dosis indicada
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: 2 }}>
-              {selectedMed.dose}
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
-              Frecuencia
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-primary-dark)', marginTop: 2 }}>
-              {selectedMed.frequency}
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
-              Horarios
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-              {selectedMed.times.map(t => (
-                <span
-                  key={t}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 999,
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid var(--border-mint)',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: 'var(--color-primary)'
-                  }}
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ borderTop: '1px solid var(--border-mint)', paddingTop: 10, fontSize: 13, color: 'var(--color-muted)' }}>
-            La cargó {selectedMed.addedBy}
-          </div>
-        </div>
-
-        {isRoberto && (
-          <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontSize: 14, color: 'var(--color-muted)', lineHeight: 1.4 }}>
-              Si sentís molestias, cambios de dosis o algo no está bien, avisale a Silvana para que revise las indicaciones con tu médico.
-            </div>
-            <button
-              className="btn-soft"
-              onClick={() => handleNotifySilvana(selectedMed.name)}
-            >
-              <MessageSquare size={16} /> Avisarle a Silvana
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
+  // Screen render
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <h1 className="screen-title" style={{ fontSize: 'var(--large-title, 26px)', marginBottom: 2 }}>
-            {isRoberto ? 'Tus medicinas' : 'Medicinas de Roberto'}
-          </h1>
-          <div className="screen-subtitle">
-            {isRoberto
-              ? 'Tus indicaciones médicas registradas y horarios'
-              : 'Copia las indicaciones médicas que ya tiene'}
+      {selectedMed ? (
+        /* Details of a medicine (Screen H-02) */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <button className="btn-back" onClick={() => setSelectedMed(null)}>
+              <ArrowLeft size={16} /> Volver
+            </button>
           </div>
+
+          <div>
+            <h1 className="screen-title" style={{ fontSize: 26 }}>
+              {selectedMed.name}
+            </h1>
+            <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
+              Detalles de tu medicina
+            </div>
+          </div>
+
+          <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5, color: 'var(--color-primary)', fontWeight: 700 }}>
+                Dosis indicada
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: 2 }}>
+                {selectedMed.dose}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
+                Frecuencia
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-primary-dark)', marginTop: 2 }}>
+                {selectedMed.frequency}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
+                Horarios
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                {selectedMed.times.map(t => (
+                  <span
+                    key={t}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: 999,
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid var(--border-mint)',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: 'var(--color-primary)'
+                    }}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--border-mint)', paddingTop: 10, fontSize: 13, color: 'var(--color-muted)' }}>
+              La cargó {selectedMed.addedBy}
+            </div>
+          </div>
+
+          {/* Acciones de gestión protegidas dentro del detalle */}
+          <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+              Opciones de la medicina
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                className="btn-soft"
+                onClick={() => handleOpenEdit(selectedMed)}
+                style={{ minHeight: 48, justifyContent: 'center', fontSize: 15 }}
+              >
+                Editar dosis u horarios
+              </button>
+
+              <button
+                className="btn-outline"
+                onClick={() => setShowPauseConfirm(selectedMed)}
+                style={{ minHeight: 48, justifyContent: 'center', fontSize: 15 }}
+              >
+                <PauseCircle size={18} /> {selectedMed.status === 'paused' ? 'Reanudar recordatorios' : 'Pausar recordatorios'}
+              </button>
+
+              <button
+                className="btn-danger-outline"
+                onClick={() => setShowDeleteConfirm(selectedMed)}
+                style={{ minHeight: 48, justifyContent: 'center', fontSize: 15, color: '#8A3930', borderColor: '#F5C2C7' }}
+              >
+                <Trash2 size={18} /> Eliminar medicina
+              </button>
+            </div>
+          </div>
+
+          {isRoberto && (
+            <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ fontSize: 14, color: 'var(--color-muted)', lineHeight: 1.4 }}>
+                Si sentís molestias, cambios de dosis o algo no está bien, avisale a Silvana para que revise las indicaciones con tu médico.
+              </div>
+              <button
+                className="btn-soft"
+                onClick={() => handleNotifySilvana(selectedMed.name)}
+              >
+                <MessageSquare size={16} /> Avisarle a Silvana
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h1 className="screen-title" style={{ fontSize: 'var(--large-title, 26px)', marginBottom: 2 }}>
+                {isRoberto ? 'Tus medicinas' : 'Medicinas de Roberto'}
+              </h1>
+              <div className="screen-subtitle">
+                {isRoberto
+                  ? 'Tus indicaciones médicas registradas y horarios'
+                  : 'Copia las indicaciones médicas que ya tiene'}
+              </div>
+            </div>
+          </div>
 
       {/* Medicine list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -218,96 +251,65 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
             <div
               key={med.id}
               className="card-white"
+              onClick={() => setSelectedMed(med)}
+              role="button"
+              tabIndex={0}
               style={{
                 opacity: isPaused ? 0.75 : 1,
                 border: isPaused ? '1px dashed var(--border-mint)' : '1px solid var(--border-subtle)',
                 display: 'flex',
-                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '16px 18px',
+                cursor: 'pointer',
                 gap: 12
               }}
             >
-              <div
-                style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', cursor: 'pointer' }}
-                onClick={() => setSelectedMed(med)}
-              >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    backgroundColor: isPaused ? 'var(--border-subtle)' : 'var(--bg-mint)',
-                    color: isPaused ? 'var(--color-muted)' : 'var(--color-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
-                    <Pill size={20} />
-                  </div>
-
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                        {med.name}
-                      </span>
-                      <span style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        padding: '2px 8px',
-                        borderRadius: 999,
-                        backgroundColor: isPaused ? '#FEE2E2' : 'var(--bg-mint)',
-                        color: isPaused ? '#B91C1C' : 'var(--color-primary)'
-                      }}>
-                        {isPaused ? 'Pausada' : 'Activa'}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 2 }}>
-                      {med.dose}
-                    </div>
-
-                    <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4 }}>
-                      {med.frequency} · {med.times.join(' y ')}
-                    </div>
-                  </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '50%',
+                  backgroundColor: isPaused ? 'var(--border-subtle)' : 'var(--bg-mint)',
+                  color: isPaused ? 'var(--color-muted)' : 'var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Pill size={22} />
                 </div>
 
-                <ChevronRight size={20} color="var(--color-muted-light)" style={{ marginTop: 8 }} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                      {med.name}
+                    </span>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: 999,
+                      backgroundColor: isPaused ? '#FEE2E2' : 'var(--bg-mint)',
+                      color: isPaused ? '#B91C1C' : 'var(--color-primary)'
+                    }}>
+                      {isPaused ? 'Pausada' : 'Activa'}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 2 }}>
+                    {med.dose}
+                  </div>
+
+                  <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4 }}>
+                    {med.frequency} · {med.times.join(' y ')}
+                  </div>
+                </div>
               </div>
 
-              {/* Action buttons inside card */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                borderTop: '1px solid var(--border-subtle)',
-                paddingTop: 10,
-                marginTop: 2,
-                flexWrap: 'wrap'
-              }}>
-                <button
-                  className="btn-soft"
-                  onClick={() => handleOpenEdit(med)}
-                  style={{ padding: '8px 14px', fontSize: 13, flex: '1 1 auto', minWidth: 'fit-content', minHeight: 40 }}
-                >
-                  Editar
-                </button>
-
-                <button
-                  className="btn-soft"
-                  onClick={() => setShowPauseConfirm(med)}
-                  style={{ padding: '8px 14px', fontSize: 13, flex: '1 1 auto', minWidth: 'fit-content', minHeight: 40 }}
-                >
-                  <PauseCircle size={15} /> {isPaused ? 'Reanudar' : 'Pausar'}
-                </button>
-
-                <button
-                  className="btn-danger-outline"
-                  onClick={() => setShowDeleteConfirm(med)}
-                  style={{ padding: '8px 14px', fontSize: 13, width: 'auto', minHeight: 40 }}
-                >
-                  <Trash2 size={15} />
-                </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-primary)', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+                <span>Ver</span>
+                <ChevronRight size={18} />
               </div>
             </div>
           );
@@ -323,6 +325,8 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
       <div className="card-mint" style={{ fontSize: 13, color: 'var(--color-primary-dark)', lineHeight: 1.4 }}>
         <strong>Importante:</strong> Solo Roberto puede confirmar sus tomas. La app conserva el historial aunque una medicina sea pausada o eliminada.
       </div>
+      </>
+      )}
 
       {/* ADD MEDICINE WIZARD MODAL (Steps 1 to 4 from I-02..I-05) */}
       {showAddModal && (
@@ -534,6 +538,12 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 className="btn-primary"
                 onClick={() => {
                   togglePauseMedicine(showPauseConfirm.id);
+                  if (selectedMed && selectedMed.id === showPauseConfirm.id) {
+                    setSelectedMed({
+                      ...selectedMed,
+                      status: selectedMed.status === 'active' ? 'paused' : 'active'
+                    });
+                  }
                   setShowPauseConfirm(null);
                   showToast(
                     showPauseConfirm.status === 'active' ? 'Medicina pausada' : 'Medicina reactivada',
@@ -572,6 +582,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 onClick={() => {
                   deleteMedicine(showDeleteConfirm.id);
                   setShowDeleteConfirm(null);
+                  setSelectedMed(null);
                 }}
               >
                 Sí, eliminar medicina
