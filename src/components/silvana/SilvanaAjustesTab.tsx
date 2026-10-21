@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
+import { AccessibilitySettingsView } from '../common/AccessibilitySettingsView';
 import {
   Bell,
+  Eye,
   UserCheck,
   ChevronRight,
   ArrowLeft,
@@ -25,7 +27,7 @@ export const SilvanaAjustesTab: React.FC = () => {
     showToast
   } = useMediRecord();
 
-  const [activeSubscreen, setActiveSubscreen] = useState<'main' | 'avisos' | 'vinculo' | 'codigo'>('main');
+  const [activeSubscreen, setActiveSubscreen] = useState<'main' | 'avisos' | 'vinculo' | 'codigo' | 'accesibilidad'>('main');
 
   const waitOptions = [
     { minutes: 30, label: '30 minutos', desc: 'Aviso rápido ante tomas críticas' },
@@ -273,6 +275,11 @@ export const SilvanaAjustesTab: React.FC = () => {
     );
   }
 
+  // Subscreen: Accesibilidad
+  if (activeSubscreen === 'accesibilidad') {
+    return <AccessibilitySettingsView onBack={() => setActiveSubscreen('main')} />;
+  }
+
   // Main Silvana Menu (H-10)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -394,6 +401,44 @@ export const SilvanaAjustesTab: React.FC = () => {
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>
                 Avisar a los {state.silvanaAlertWaitMinutes} min
+              </div>
+            </div>
+          </div>
+          <ChevronRight size={20} color="var(--color-muted-light)" />
+        </div>
+
+        {/* Option 4: Accesibilidad */}
+        <div
+          className="card-white"
+          onClick={() => setActiveSubscreen('accesibilidad')}
+          style={{
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '18px 20px'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              backgroundColor: 'var(--bg-mint)',
+              color: 'var(--color-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <Eye size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                Accesibilidad
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>
+                {state.fontSize === 'normal' ? 'Letra normal' : state.fontSize === 'large' ? 'Letra grande' : 'Letra muy grande'}
               </div>
             </div>
           </div>

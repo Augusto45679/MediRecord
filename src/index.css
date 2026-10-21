@@ -51,41 +51,66 @@
 }
 
 .font-large {
-  --base-font-size: 19px;
-  --title-size: 25px;
-  --large-title: 30px;
-  font-size: 19px;
+  --base-font-size: 18px;
+  --title-size: 24px;
+  --large-title: 28px;
+  font-size: 18px;
 }
 
 .font-xlarge {
-  --base-font-size: 23px;
-  --title-size: 29px;
-  --large-title: 36px;
-  font-size: 23px;
+  --base-font-size: 21px;
+  --title-size: 27px;
+  --large-title: 32px;
+  font-size: 21px;
 }
 
-.font-large .screen-title {
-  font-size: 26px !important;
-}
+/* Proportional Typographic Scaling for .font-large */
+.font-large .screen-title { font-size: 26px !important; line-height: 1.3 !important; }
+.font-large .screen-subtitle { font-size: 16px !important; line-height: 1.45 !important; }
 
-.font-xlarge .screen-title {
-  font-size: 32px !important;
-}
+.font-large [style*="font-size: 11px"], .font-large [style*="font-size:11px"] { font-size: 13px !important; }
+.font-large [style*="font-size: 12px"], .font-large [style*="font-size:12px"] { font-size: 14px !important; }
+.font-large [style*="font-size: 13px"], .font-large [style*="font-size:13px"] { font-size: 15px !important; }
+.font-large [style*="font-size: 14px"], .font-large [style*="font-size:14px"] { font-size: 16.5px !important; }
+.font-large [style*="font-size: 15px"], .font-large [style*="font-size:15px"] { font-size: 17.5px !important; }
+.font-large [style*="font-size: 16px"], .font-large [style*="font-size:16px"] { font-size: 19px !important; }
+.font-large [style*="font-size: 17px"], .font-large [style*="font-size:17px"] { font-size: 20px !important; }
+.font-large [style*="font-size: 18px"], .font-large [style*="font-size:18px"] { font-size: 21px !important; }
+.font-large [style*="font-size: 20px"], .font-large [style*="font-size:20px"] { font-size: 23px !important; }
+.font-large [style*="font-size: 22px"], .font-large [style*="font-size:22px"] { font-size: 25px !important; }
+.font-large [style*="font-size: 24px"], .font-large [style*="font-size:24px"] { font-size: 27px !important; }
+.font-large [style*="font-size: 26px"], .font-large [style*="font-size:26px"] { font-size: 29px !important; }
+.font-large [style*="font-size: 28px"], .font-large [style*="font-size:28px"] { font-size: 31px !important; }
+.font-large [style*="font-size: 30px"], .font-large [style*="font-size:30px"] { font-size: 33px !important; }
+.font-large [style*="font-size: 32px"], .font-large [style*="font-size:32px"] { font-size: 35px !important; }
+.font-large [style*="font-size: 34px"], .font-large [style*="font-size:34px"] { font-size: 37px !important; }
 
-.font-large .screen-subtitle {
-  font-size: 17px !important;
-}
+/* Proportional Typographic Scaling for .font-xlarge */
+.font-xlarge .screen-title { font-size: 32px !important; line-height: 1.3 !important; }
+.font-xlarge .screen-subtitle { font-size: 18.5px !important; line-height: 1.5 !important; }
 
-.font-xlarge .screen-subtitle {
-  font-size: 20px !important;
-}
+.font-xlarge [style*="font-size: 11px"], .font-xlarge [style*="font-size:11px"] { font-size: 14.5px !important; }
+.font-xlarge [style*="font-size: 12px"], .font-xlarge [style*="font-size:12px"] { font-size: 16px !important; }
+.font-xlarge [style*="font-size: 13px"], .font-xlarge [style*="font-size:13px"] { font-size: 17px !important; }
+.font-xlarge [style*="font-size: 14px"], .font-xlarge [style*="font-size:14px"] { font-size: 18.5px !important; }
+.font-xlarge [style*="font-size: 15px"], .font-xlarge [style*="font-size:15px"] { font-size: 20px !important; }
+.font-xlarge [style*="font-size: 16px"], .font-xlarge [style*="font-size:16px"] { font-size: 21.5px !important; }
+.font-xlarge [style*="font-size: 17px"], .font-xlarge [style*="font-size:17px"] { font-size: 23px !important; }
+.font-xlarge [style*="font-size: 18px"], .font-xlarge [style*="font-size:18px"] { font-size: 24px !important; }
+.font-xlarge [style*="font-size: 20px"], .font-xlarge [style*="font-size:20px"] { font-size: 26.5px !important; }
+.font-xlarge [style*="font-size: 22px"], .font-xlarge [style*="font-size:22px"] { font-size: 28.5px !important; }
+.font-xlarge [style*="font-size: 24px"], .font-xlarge [style*="font-size:24px"] { font-size: 31px !important; }
+.font-xlarge [style*="font-size: 26px"], .font-xlarge [style*="font-size:26px"] { font-size: 33px !important; }
+.font-xlarge [style*="font-size: 28px"], .font-xlarge [style*="font-size:28px"] { font-size: 35px !important; }
+.font-xlarge [style*="font-size: 30px"], .font-xlarge [style*="font-size:30px"] { font-size: 37px !important; }
+.font-xlarge [style*="font-size: 32px"], .font-xlarge [style*="font-size:32px"] { font-size: 39px !important; }
+.font-xlarge [style*="font-size: 34px"], .font-xlarge [style*="font-size:34px"] { font-size: 41px !important; }
 
-.font-large p, .font-large div:not(.status-bar-icons):not(.drag-handle), .font-large span, .font-large button, .font-large input {
-  font-size: max(1em, var(--base-font-size));
-}
-
-.font-xlarge p, .font-xlarge div:not(.status-bar-icons):not(.drag-handle), .font-xlarge span, .font-xlarge button, .font-xlarge input {
-  font-size: max(1.1em, var(--base-font-size));
+/* Safe word breaking for scaled text */
+.font-large p, .font-large div,
+.font-xlarge p, .font-xlarge div {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 /* High Contrast Mode */
@@ -134,48 +159,57 @@ body {
 .presentation-layout {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 24px 16px 80px 16px;
+  padding: 24px 16px 60px 16px;
   background: radial-gradient(circle at 50% 20%, #263631 0%, #151D1A 100%);
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .presentation-layout {
     padding: 0;
     margin: 0;
     background: var(--bg-app);
     min-height: 100dvh;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 
-/* Mobile Phone Mockup Frame */
+/* Mobile Phone Mockup Frame - Optimized for iPhone 16 Pro Max (~440px) */
 .phone-mockup-frame {
   width: 100%;
-  max-width: 420px;
-  height: 874px;
-  max-height: 94vh;
+  max-width: 440px;
+  height: 932px;
+  max-height: calc(100vh - 120px);
+  max-height: calc(100dvh - 120px);
   background-color: var(--bg-app);
-  border-radius: var(--radius-screen);
+  border-radius: 44px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45), 0 0 0 10px #2D3934, 0 0 0 12px rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .phone-mockup-frame {
     max-width: 100%;
-    width: 100%;
-    min-width: 0;
-    height: 100vh;
-    max-height: 100vh;
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
     border-radius: 0;
     box-shadow: none;
     border: none;
+    flex-shrink: 0;
   }
 }
 
@@ -254,6 +288,17 @@ body {
 }
 
 /* Cards */
+.card-white, .card-mint, .card-amber, .card-coral {
+  display: flex;
+  flex-direction: column;
+  height: auto !important;
+  min-height: fit-content !important;
+  overflow: visible !important;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 .card-white {
   background-color: var(--bg-card);
   border-radius: var(--radius-card);
@@ -292,18 +337,29 @@ body {
   color: var(--color-primary-dark);
   letter-spacing: -0.4px;
   margin-bottom: 4px;
+  line-height: 1.3;
 }
 
 .screen-subtitle {
   font-size: 14px;
   color: var(--color-muted);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 /* Buttons */
+.btn-primary, .btn-outline, .btn-soft, .btn-danger-outline {
+  height: auto !important;
+  min-height: 52px;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+  text-align: center;
+  box-sizing: border-box;
+}
+
 .btn-primary {
   width: 100%;
-  padding: 16px 20px;
+  padding: 14px 20px;
   background-color: var(--color-primary);
   color: #FFFFFF;
   border: none;
@@ -411,14 +467,16 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 68px;
+  min-height: 68px;
+  height: auto;
   background-color: #FFFFFF;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 8px 6px 8px;
+  justify-content: space-around;
+  padding: 6px 6px env(safe-area-inset-bottom, 8px) 6px;
   z-index: 30;
+  box-sizing: border-box;
 }
 
 .nav-tab-item {
@@ -434,11 +492,36 @@ body {
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
-  padding: 6px 4px;
+  padding: 6px 2px;
   border-radius: 12px;
   transition: all 0.15s ease;
   flex: 1;
-  max-width: 80px;
+  max-width: 96px;
+  min-width: 0;
+}
+
+.nav-tab-item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block;
+}
+
+.font-large .nav-tab-item {
+  font-size: 12px !important;
+}
+
+.font-xlarge .nav-tab-item {
+  font-size: 13px !important;
+}
+
+.font-large .screen-scroll-container {
+  padding-bottom: 96px;
+}
+
+.font-xlarge .screen-scroll-container {
+  padding-bottom: 108px;
 }
 
 .nav-tab-item.active {

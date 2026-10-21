@@ -282,12 +282,13 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 gap: 8,
                 borderTop: '1px solid var(--border-subtle)',
                 paddingTop: 10,
-                marginTop: 2
+                marginTop: 2,
+                flexWrap: 'wrap'
               }}>
                 <button
                   className="btn-soft"
                   onClick={() => handleOpenEdit(med)}
-                  style={{ padding: '8px 12px', fontSize: 13 }}
+                  style={{ padding: '8px 14px', fontSize: 13, flex: '1 1 auto', minWidth: 'fit-content', minHeight: 40 }}
                 >
                   Editar
                 </button>
@@ -295,17 +296,17 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 <button
                   className="btn-soft"
                   onClick={() => setShowPauseConfirm(med)}
-                  style={{ padding: '8px 12px', fontSize: 13 }}
+                  style={{ padding: '8px 14px', fontSize: 13, flex: '1 1 auto', minWidth: 'fit-content', minHeight: 40 }}
                 >
-                  <PauseCircle size={14} /> {isPaused ? 'Reanudar' : 'Pausar'}
+                  <PauseCircle size={15} /> {isPaused ? 'Reanudar' : 'Pausar'}
                 </button>
 
                 <button
                   className="btn-danger-outline"
                   onClick={() => setShowDeleteConfirm(med)}
-                  style={{ padding: '8px 12px', fontSize: 13, width: 'auto' }}
+                  style={{ padding: '8px 14px', fontSize: 13, width: 'auto', minHeight: 40 }}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>

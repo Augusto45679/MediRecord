@@ -389,18 +389,18 @@ export const RobertoHoyTab: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {/* Morning Dose: Losartan 08:00 */}
           {morningDose && (
-            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 180px', minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
                     {morningDose.time} · {morningDose.medicineName}
                   </span>
                   <CheckCircle2 size={16} color="var(--color-primary)" />
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2 }}>
+                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
                   {morningDose.doseDescription}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4, lineHeight: 1.4 }}>
                   Registrada a las {morningDose.takenAt || '08:05'}
                 </div>
               </div>
@@ -409,8 +409,10 @@ export const RobertoHoyTab: React.FC = () => {
                 fontWeight: 600,
                 color: 'var(--color-primary)',
                 background: 'var(--bg-mint)',
-                padding: '3px 10px',
-                borderRadius: 999
+                padding: '4px 12px',
+                borderRadius: 999,
+                flexShrink: 0,
+                alignSelf: 'flex-start'
               }}>
                 Tomada
               </span>
@@ -419,15 +421,15 @@ export const RobertoHoyTab: React.FC = () => {
 
           {/* Evening Dose: Metformina 20:00 */}
           {eveningDose && (
-            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', opacity: isAllConfirmed ? 1 : 0.85 }}>
-              <div>
+            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', gap: 12, flexWrap: 'wrap', opacity: isAllConfirmed ? 1 : 0.85 }}>
+              <div style={{ flex: '1 1 180px', minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
                   {eveningDose.time} · {eveningDose.medicineName}
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2 }}>
+                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
                   {eveningDose.doseDescription}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.4 }}>
                   {eveningDose.status === 'taken' ? 'Registrada a las 20:05' : 'Próxima toma · aún no toca'}
                 </div>
               </div>
@@ -437,8 +439,10 @@ export const RobertoHoyTab: React.FC = () => {
                 color: eveningDose.status === 'taken' ? 'var(--color-primary)' : 'var(--pending-text)',
                 background: eveningDose.status === 'taken' ? 'var(--bg-mint)' : 'var(--pending-bg)',
                 border: eveningDose.status === 'taken' ? '1px solid transparent' : '1px solid var(--pending-border)',
-                padding: '3px 10px',
-                borderRadius: 999
+                padding: '4px 12px',
+                borderRadius: 999,
+                flexShrink: 0,
+                alignSelf: 'flex-start'
               }}>
                 {eveningDose.status === 'taken' ? 'Tomada' : 'Pendiente'}
               </span>

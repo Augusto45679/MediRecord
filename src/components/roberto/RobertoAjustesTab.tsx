@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
-import type { FontSizePreference } from '../../types';
 import { InvitationReceivedScreen } from './InvitationReceivedScreen';
+import { AccessibilitySettingsView } from '../common/AccessibilitySettingsView';
 import {
   Users,
   Eye,
@@ -9,7 +9,6 @@ import {
   Volume2,
   ChevronRight,
   ArrowLeft,
-  Check,
   UserCheck,
   ShieldAlert,
   LogOut,
@@ -25,8 +24,6 @@ import {
 export const RobertoAjustesTab: React.FC = () => {
   const {
     state,
-    setFontSize,
-    setHighContrast,
     setSoundEnabled,
     toggleFamilyLink,
     setRole,
@@ -188,84 +185,9 @@ export const RobertoAjustesTab: React.FC = () => {
     );
   }
 
-  // ── Subscreen: Accesibilidad (E-10, accesibilidad) ──────────────────────────
+  // ── Subscreen: Accesibilidad ──────────────────────────────────────────────
   if (activeSubscreen === 'manera') {
-    const fontSizes: { id: FontSizePreference; label: string; desc: string }[] = [
-      { id: 'normal', label: 'Normal', desc: 'Tamaño estándar para textos' },
-      { id: 'large', label: 'Grande (Recomendado)', desc: 'Letra más clara y cómoda para leer' },
-      { id: 'xlarge', label: 'Muy grande', desc: 'Máxima legibilidad y contraste alto' }
-    ];
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <button className="btn-back" onClick={() => setActiveSubscreen('main')}>
-            <ArrowLeft size={16} /> Volver
-          </button>
-        </div>
-
-        <div>
-          <h1 className="screen-title" style={{ fontSize: 24 }}>Accesibilidad</h1>
-          <div className="screen-subtitle">Elegí cómo querés ver y configurar la interfaz.</div>
-        </div>
-
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 8 }}>
-            Tamaño de letra
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {fontSizes.map(f => {
-              const isSelected = state.fontSize === f.id;
-              return (
-                <button
-                  key={f.id}
-                  onClick={() => setFontSize(f.id)}
-                  style={{
-                    padding: '14px 16px', borderRadius: '16px',
-                    border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--border-subtle)',
-                    backgroundColor: isSelected ? 'var(--bg-mint)' : 'var(--bg-card)',
-                    color: isSelected ? 'var(--color-primary-dark)' : 'var(--color-text)',
-                    cursor: 'pointer', textAlign: 'left', display: 'flex',
-                    alignItems: 'center', justifyContent: 'space-between'
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>{f.label}</div>
-                    <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2 }}>{f.desc}</div>
-                  </div>
-                  {isSelected && <Check size={20} color="var(--color-primary)" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-primary-dark)' }}>Alto contraste</div>
-              <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>Texto más oscuro con bordes reforzados</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={state.highContrast}
-              onChange={e => setHighContrast(e.target.checked)}
-              style={{ width: 22, height: 22, accentColor: 'var(--color-primary)', cursor: 'pointer' }}
-            />
-          </div>
-        </div>
-
-        <button
-          className="btn-primary"
-          onClick={() => {
-            showToast('Preferencias guardadas', 'success', 'Tu configuración de accesibilidad fue actualizada.');
-            setActiveSubscreen('main');
-          }}
-        >
-          Guardar preferencias
-        </button>
-      </div>
-    );
+    return <AccessibilitySettingsView onBack={() => setActiveSubscreen('main')} />;
   }
 
   // ── Subscreen: Avisos y sonido (H-07) ─────────────────────────────────────
