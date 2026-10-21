@@ -4,6 +4,7 @@ import type {
   UserRole,
   MainTab,
   FontSizePreference,
+  SpecialView,
   Medicine
 } from '../types';
 import { DEFAULT_STATE } from '../data/initialData';
@@ -41,6 +42,7 @@ interface MediRecordContextType {
   setPendingInvitation: (pending: boolean) => void;
   acceptInvitation: () => void;
   rejectInvitation: () => void;
+  setSpecialView: (view: SpecialView) => void;
   resetDemo: () => void;
 }
 
@@ -117,12 +119,16 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const setRole = (role: UserRole) => {
-    setState(prev => ({ ...prev, currentRole: role }));
+    setState(prev => ({ ...prev, currentRole: role, specialView: 'none' }));
     showToast(
       role === 'roberto' ? 'Modo Roberto (Paciente)' : 'Modo Silvana (Familiar)',
       'info',
       role === 'roberto' ? 'Visualizando experiencia de Roberto Gómez' : 'Visualizando acompañamiento de Silvana Gómez'
     );
+  };
+
+  const setSpecialView = (view: SpecialView) => {
+    setState(prev => ({ ...prev, specialView: view }));
   };
 
   const setTab = (tab: MainTab) => {
@@ -472,7 +478,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const resetDemo = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setState(DEFAULT_STATE);
+    setState({ ...DEFAULT_STATE, specialView: 'none' });
     showToast('Demo restablecida', 'info', 'Se han restablecido los valores y estados iniciales.');
   };
 
@@ -504,6 +510,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setPendingInvitation,
         acceptInvitation,
         rejectInvitation,
+        setSpecialView,
         resetDemo
       }}
     >

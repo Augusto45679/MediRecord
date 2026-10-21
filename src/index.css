@@ -578,26 +578,27 @@ body {
 .demo-control-bar {
   margin-top: 20px;
   width: 100%;
-  max-width: 440px;
-  background: #24302C;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  padding: 12px 14px;
+  max-width: 520px;
+  background: #14221E;
+  border: 1px solid #2B423A;
+  border-radius: 20px;
+  padding: 16px;
   color: #FFFFFF;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  gap: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   z-index: 100;
   box-sizing: border-box;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .demo-control-bar {
-    width: calc(100% - 24px);
-    margin: 16px auto;
-    border-radius: 14px;
-    padding: 10px 12px;
+    width: calc(100% - 20px);
+    margin: 14px auto 30px auto;
+    border-radius: 16px;
+    padding: 12px;
+    max-width: 100%;
   }
 }
 
@@ -607,7 +608,8 @@ body {
   justify-content: space-between;
   font-size: 13px;
   font-weight: 600;
-  color: #A3C5BA;
+  color: #FFFFFF;
+  gap: 8px;
 }
 
 .demo-bar-actions {
@@ -619,27 +621,32 @@ body {
 
 .demo-chip-btn {
   padding: 6px 12px;
-  border-radius: 999px;
-  background: #33443F;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #E2ECE7;
+  border-radius: 10px;
+  background: #233630;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   transition: all 0.15s ease;
+  font-family: inherit;
+  text-align: center;
 }
 
 .demo-chip-btn:hover {
-  background: #3F554F;
+  background: #2D473F;
+  border-color: #34D399;
 }
 
 .demo-chip-btn.active {
   background: #07564F;
-  border-color: #37A295;
+  border-color: #34D399;
   color: #FFFFFF;
+  box-shadow: 0 0 0 1px #34D399;
 }
 
 /* Toast Container inside phone frame */

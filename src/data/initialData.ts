@@ -143,6 +143,7 @@ export const INITIAL_HISTORY: DayHistory[] = [
 export const DEFAULT_STATE: MediRecordState = {
   currentRole: 'roberto',
   currentTab: 'hoy',
+  specialView: 'none',
   fontSize: 'large', // Default "Grande" per MVP decisions
   highContrast: false,
   soundEnabled: true,

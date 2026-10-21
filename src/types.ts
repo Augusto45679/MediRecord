@@ -6,6 +6,8 @@ export type DoseStatus = 'pending' | 'taken' | 'omitted' | 'unconfirmed';
 
 export type FontSizePreference = 'normal' | 'large' | 'xlarge';
 
+export type SpecialView = 'none' | 'welcome' | 'onboarding-roberto' | 'onboarding-silvana';
+
 export interface DoseRecord {
   id: string;
   medicineId: string;
@@ -51,6 +53,7 @@ export interface DayHistory {
 export interface MediRecordState {
   currentRole: UserRole;
   currentTab: MainTab;
+  specialView: SpecialView;
   fontSize: FontSizePreference;
   highContrast: boolean;
   soundEnabled: boolean;
