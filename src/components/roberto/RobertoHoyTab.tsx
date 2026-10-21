@@ -104,10 +104,12 @@ export const RobertoHoyTab: React.FC = () => {
           color: 'var(--color-primary-dark)',
           fontSize: 14,
           fontWeight: 600,
-          gap: 8,
-          flexWrap: 'wrap'
+          gap: 10,
+          flexWrap: 'wrap',
+          minHeight: 44,
+          height: 'auto'
         }}>
-          <span>{takenCount} de 3 tomas registradas</span>
+          <span style={{ wordBreak: 'break-word' }}>{takenCount} de 3 tomas registradas</span>
           <button
             onClick={handleSimulateAlarmSound}
             style={{
@@ -117,12 +119,15 @@ export const RobertoHoyTab: React.FC = () => {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: 4,
+              gap: 5,
               fontSize: 12,
-              fontWeight: 700
+              fontWeight: 700,
+              padding: '4px 6px',
+              borderRadius: '8px',
+              flexShrink: 0
             }}
           >
-            <Volume2 size={15} /> Probar alarma
+            <Volume2 size={16} /> Probar alarma
           </button>
         </div>
       )}
@@ -389,63 +394,67 @@ export const RobertoHoyTab: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {/* Morning Dose: Losartan 08:00 */}
           {morningDose && (
-            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 180px', minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                    {morningDose.time} · {morningDose.medicineName}
-                  </span>
-                  <CheckCircle2 size={16} color="var(--color-primary)" />
+            <div className="card-white" style={{ padding: '16px 20px', height: 'auto', minHeight: 'auto', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                      {morningDose.time} · {morningDose.medicineName}
+                    </span>
+                    <CheckCircle2 size={16} color="var(--color-primary)" />
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
+                    {morningDose.doseDescription}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4, lineHeight: 1.4 }}>
+                    Registrada a las {morningDose.takenAt || '08:05'}
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
-                  {morningDose.doseDescription}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4, lineHeight: 1.4 }}>
-                  Registrada a las {morningDose.takenAt || '08:05'}
-                </div>
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: 'var(--color-primary)',
+                  background: 'var(--bg-mint)',
+                  padding: '4px 12px',
+                  borderRadius: 999,
+                  flexShrink: 0,
+                  alignSelf: 'flex-start'
+                }}>
+                  Tomada
+                </span>
               </div>
-              <span style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--color-primary)',
-                background: 'var(--bg-mint)',
-                padding: '4px 12px',
-                borderRadius: 999,
-                flexShrink: 0,
-                alignSelf: 'flex-start'
-              }}>
-                Tomada
-              </span>
             </div>
           )}
 
           {/* Evening Dose: Metformina 20:00 */}
           {eveningDose && (
-            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', gap: 12, flexWrap: 'wrap', opacity: isAllConfirmed ? 1 : 0.85 }}>
-              <div style={{ flex: '1 1 180px', minWidth: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                  {eveningDose.time} · {eveningDose.medicineName}
+            <div className="card-white" style={{ padding: '16px 20px', height: 'auto', minHeight: 'auto', textAlign: 'left', opacity: isAllConfirmed ? 1 : 0.85 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    {eveningDose.time} · {eveningDose.medicineName}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
+                    {eveningDose.doseDescription}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.4 }}>
+                    {eveningDose.status === 'taken' ? 'Registrada a las 20:05' : 'Próxima toma · aún no toca'}
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
-                  {eveningDose.doseDescription}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 4, lineHeight: 1.4 }}>
-                  {eveningDose.status === 'taken' ? 'Registrada a las 20:05' : 'Próxima toma · aún no toca'}
-                </div>
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: eveningDose.status === 'taken' ? 'var(--color-primary)' : 'var(--pending-text)',
+                  background: eveningDose.status === 'taken' ? 'var(--bg-mint)' : 'var(--pending-bg)',
+                  border: eveningDose.status === 'taken' ? '1px solid transparent' : '1px solid var(--pending-border)',
+                  padding: '4px 12px',
+                  borderRadius: 999,
+                  flexShrink: 0,
+                  alignSelf: 'flex-start'
+                }}>
+                  {eveningDose.status === 'taken' ? 'Tomada' : 'Pendiente'}
+                </span>
               </div>
-              <span style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: eveningDose.status === 'taken' ? 'var(--color-primary)' : 'var(--pending-text)',
-                background: eveningDose.status === 'taken' ? 'var(--bg-mint)' : 'var(--pending-bg)',
-                border: eveningDose.status === 'taken' ? '1px solid transparent' : '1px solid var(--pending-border)',
-                padding: '4px 12px',
-                borderRadius: 999,
-                flexShrink: 0,
-                alignSelf: 'flex-start'
-              }}>
-                {eveningDose.status === 'taken' ? 'Tomada' : 'Pendiente'}
-              </span>
             </div>
           )}
         </div>

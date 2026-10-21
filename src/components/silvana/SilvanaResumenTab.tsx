@@ -224,35 +224,39 @@ export const SilvanaResumenTab: React.FC = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {morningDose && (
-            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 180px', minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: 'var(--color-primary-dark)', flexWrap: 'wrap' }}>
-                  <span>{morningDose.time} · {morningDose.medicineName}</span>
-                  <CheckCircle2 size={15} color="var(--color-primary)" />
+            <div className="card-white" style={{ padding: '16px 20px', height: 'auto', minHeight: 'auto', textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, color: 'var(--color-primary-dark)', flexWrap: 'wrap' }}>
+                    <span>{morningDose.time} · {morningDose.medicineName}</span>
+                    <CheckCircle2 size={15} color="var(--color-primary)" />
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
+                    {morningDose.doseDescription} · Registrada {morningDose.takenAt || '08:05'}
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
-                  {morningDose.doseDescription} · Registrada {morningDose.takenAt || '08:05'}
-                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', background: 'var(--bg-mint)', padding: '4px 10px', borderRadius: 999, flexShrink: 0, alignSelf: 'flex-start' }}>
+                  Confirmada
+                </span>
               </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', background: 'var(--bg-mint)', padding: '4px 10px', borderRadius: 999, flexShrink: 0, alignSelf: 'flex-start' }}>
-                Confirmada
-              </span>
             </div>
           )}
 
           {eveningDose && (
-            <div className="card-white" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', gap: 12, flexWrap: 'wrap', opacity: 0.9 }}>
-              <div style={{ flex: '1 1 180px', minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                  {eveningDose.time} · {eveningDose.medicineName}
+            <div className="card-white" style={{ padding: '16px 20px', height: 'auto', minHeight: 'auto', textAlign: 'left', opacity: 0.9 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    {eveningDose.time} · {eveningDose.medicineName}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
+                    {eveningDose.doseDescription} · Próxima toma
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
-                  {eveningDose.doseDescription} · Próxima toma
-                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--pending-text)', background: 'var(--pending-bg)', border: '1px solid var(--pending-border)', padding: '4px 10px', borderRadius: 999, flexShrink: 0, alignSelf: 'flex-start' }}>
+                  Aún no toca
+                </span>
               </div>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--pending-text)', background: 'var(--pending-bg)', border: '1px solid var(--pending-border)', padding: '4px 10px', borderRadius: 999, flexShrink: 0, alignSelf: 'flex-start' }}>
-                Aún no toca
-              </span>
             </div>
           )}
         </div>

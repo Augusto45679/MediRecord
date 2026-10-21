@@ -65,12 +65,10 @@ export const RobertoHistorialTab: React.FC = () => {
                 key={dose.id}
                 className="card-white"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
                   padding: '16px 18px',
-                  gap: 12,
-                  flexWrap: 'wrap',
+                  height: 'auto',
+                  minHeight: 'auto',
+                  textAlign: 'left',
                   borderLeft: dose.status === 'taken'
                     ? '4px solid var(--color-primary)'
                     : dose.status === 'omitted'
@@ -80,24 +78,26 @@ export const RobertoHistorialTab: React.FC = () => {
                     : '1px solid var(--border-subtle)'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 180px', minWidth: 0 }}>
-                  <Icon size={20} color={iconColor} style={{ flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                      {dose.time} · {dose.medicineName}
-                    </div>
-                    <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
-                      {dose.doseDescription}
-                    </div>
-                    {dose.omissionReason && dose.status === 'omitted' && (
-                      <div style={{ fontSize: 12, color: 'var(--alert-red-text)', marginTop: 2, lineHeight: 1.4 }}>
-                        Motivo: {dose.omissionReason}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '1 1 180px', minWidth: 0 }}>
+                    <Icon size={20} color={iconColor} style={{ flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                        {dose.time} · {dose.medicineName}
                       </div>
-                    )}
+                      <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.4 }}>
+                        {dose.doseDescription}
+                      </div>
+                      {dose.omissionReason && dose.status === 'omitted' && (
+                        <div style={{ fontSize: 12, color: 'var(--alert-red-text)', marginTop: 2, lineHeight: 1.4 }}>
+                          Motivo: {dose.omissionReason}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div style={{ flexShrink: 0, alignSelf: 'flex-start' }}>{statusBadge}</div>
+                  <div style={{ flexShrink: 0, alignSelf: 'flex-start' }}>{statusBadge}</div>
+                </div>
               </div>
             );
           })}
