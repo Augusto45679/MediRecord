@@ -206,6 +206,7 @@ def run():
         # ----------------------------------------------------------------------
         print("\n--> Capturing Category 6: Roberto - Ajustes y Accesibilidad")
 
+        # 20. Main Menu
         set_app_state(page, {
             "currentRole": "roberto",
             "currentTab": "ajustes",
@@ -214,12 +215,12 @@ def run():
         })
         snap(page, "20_roberto_ajustes_menu_principal.png", "Roberto Ajustes - Menú principal")
 
-        # Subscreen: Mi persona de apoyo (vinculada)
+        # 21. Subscreen: Mi persona de apoyo (vinculada)
         page.click("text=Mi persona de apoyo")
         page.wait_for_timeout(350)
         snap(page, "21_roberto_ajustes_persona_apoyo_vinculada.png", "Roberto Ajustes - Persona de apoyo (Silvana vinculada)")
 
-        # Subscreen: Persona de apoyo (desvinculada con código)
+        # 22. Subscreen: Persona de apoyo (desvinculada con código)
         set_app_state(page, {
             "currentRole": "roberto",
             "currentTab": "ajustes",
@@ -229,7 +230,7 @@ def run():
         page.wait_for_timeout(350)
         snap(page, "22_roberto_ajustes_persona_apoyo_desvinculada.png", "Roberto Ajustes - Sin persona de apoyo (código de 6 dígitos)")
 
-        # Subscreen: Accesibilidad
+        # 23. Subscreen: Accesibilidad
         set_app_state(page, {
             "currentRole": "roberto",
             "currentTab": "ajustes",
@@ -239,14 +240,17 @@ def run():
         page.wait_for_timeout(350)
         snap(page, "23_roberto_ajustes_accesibilidad_letra.png", "Roberto Ajustes - Accesibilidad (tamaño de fuente y alto contraste)")
 
-        # Subscreen: Avisos y sonido
-        page.click("button:has-text('Volver')")
-        page.wait_for_timeout(250)
+        # 24. Subscreen: Avisos y sonido
+        set_app_state(page, {
+            "currentRole": "roberto",
+            "currentTab": "ajustes",
+            "familyLinked": True
+        })
         page.click("text=Avisos y sonido")
         page.wait_for_timeout(350)
         snap(page, "24_roberto_ajustes_avisos_y_sonido.png", "Roberto Ajustes - Avisos y sonido")
 
-        # Accessibility mode: Alto Contraste
+        # 25. Accessibility mode: Alto Contraste en Hoy
         set_app_state(page, {
             "currentRole": "roberto",
             "currentTab": "hoy",
@@ -255,7 +259,7 @@ def run():
         })
         snap(page, "25_roberto_modo_alto_contraste.png", "Roberto Modo Alto Contraste activado")
 
-        # Accessibility mode: Fuente Muy Grande
+        # 26. Accessibility mode: Fuente Muy Grande en Hoy
         set_app_state(page, {
             "currentRole": "roberto",
             "currentTab": "hoy",
@@ -325,6 +329,7 @@ def run():
         # ----------------------------------------------------------------------
         print("\n--> Capturing Category 10: Silvana - Ajustes")
 
+        # 34. Menú principal
         set_app_state(page, {
             "currentRole": "silvana",
             "currentTab": "ajustes",
@@ -333,12 +338,12 @@ def run():
         })
         snap(page, "34_silvana_ajustes_menu_principal.png", "Silvana Ajustes - Menú principal")
 
-        # Subscreen: Vínculo familiar (vinculado con Roberto)
+        # 35. Subscreen: Vínculo familiar (vinculado con Roberto)
         page.click("text=Vínculo familiar")
         page.wait_for_timeout(350)
         snap(page, "35_silvana_ajustes_persona_acompanada_vinculada.png", "Silvana Ajustes - Vínculo activo con Roberto Gómez")
 
-        # Subscreen: Vínculo familiar (desvinculado, código de 6 dígitos)
+        # 36. Subscreen: Vínculo familiar (desvinculado, código de 6 dígitos)
         set_app_state(page, {
             "currentRole": "silvana",
             "currentTab": "ajustes",
@@ -348,7 +353,7 @@ def run():
         page.wait_for_timeout(350)
         snap(page, "36_silvana_ajustes_codigo_invitacion_directo.png", "Silvana Ajustes - Invitación familiar y código 482 716")
 
-        # Subscreen: Avisos · Preferencias
+        # 37. Subscreen: Avisos · Preferencias
         set_app_state(page, {
             "currentRole": "silvana",
             "currentTab": "ajustes",
@@ -358,9 +363,12 @@ def run():
         page.wait_for_timeout(350)
         snap(page, "37_silvana_ajustes_avisos_espera.png", "Silvana Ajustes - Configuración margen de aviso (30/60/90 min)")
 
-        # Subscreen: Accesibilidad Silvana
-        page.click("button:has-text('Volver')")
-        page.wait_for_timeout(250)
+        # 38. Subscreen: Accesibilidad Silvana
+        set_app_state(page, {
+            "currentRole": "silvana",
+            "currentTab": "ajustes",
+            "familyLinked": True
+        })
         page.click("text=Accesibilidad")
         page.wait_for_timeout(350)
         snap(page, "38_silvana_ajustes_accesibilidad.png", "Silvana Ajustes - Accesibilidad para cuidadora")
@@ -448,33 +456,40 @@ def run():
         page.wait_for_timeout(350)
 
         # Modal 11: Editar medicina
+        set_app_state(page, {
+            "currentRole": "silvana",
+            "currentTab": "medicinas",
+            "specialView": "none"
+        })
         page.click("text=Metformina")
         page.wait_for_timeout(350)
         page.click("button:has-text('Editar dosis u horarios')")
         page.wait_for_timeout(350)
         snap(page, "49_modal_editar_medicina.png", "Modal Editar dosis y horarios de medicina")
 
-        # Close edit modal
-        page.click("button:has-text('Cancelar')")
-        page.wait_for_timeout(300)
-
         # Modal 12: Pausar medicina confirmación
+        set_app_state(page, {
+            "currentRole": "silvana",
+            "currentTab": "medicinas",
+            "specialView": "none"
+        })
+        page.click("text=Metformina")
+        page.wait_for_timeout(350)
         page.click("button:has-text('Pausar recordatorios')")
         page.wait_for_timeout(350)
         snap(page, "50_modal_pausar_medicina_confirmacion.png", "Modal Confirmación ¿Pausar medicina?")
 
-        # Close pause modal
-        page.click("button:has-text('Cancelar')")
-        page.wait_for_timeout(300)
-
         # Modal 13: Eliminar medicina confirmación
+        set_app_state(page, {
+            "currentRole": "silvana",
+            "currentTab": "medicinas",
+            "specialView": "none"
+        })
+        page.click("text=Metformina")
+        page.wait_for_timeout(350)
         page.click("button:has-text('Eliminar medicina')")
         page.wait_for_timeout(350)
         snap(page, "51_modal_eliminar_medicina_confirmacion.png", "Modal Confirmación ¿Eliminar medicina?")
-
-        # Close delete modal
-        page.click("button:has-text('Cancelar')")
-        page.wait_for_timeout(300)
 
         print("\n=== All 51 mobile screens and modals captured successfully! ===")
         browser.close()
