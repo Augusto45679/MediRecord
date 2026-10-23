@@ -320,9 +320,6 @@ export const RobertoAjustesTab: React.FC = () => {
         <button className="btn-soft" onClick={() => setRole('silvana')}>
           <LogOut size={16} /> Cambiar al modo de Silvana (Familiar)
         </button>
-        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-muted-light)', marginTop: 8 }}>
-          MediRecord v1.0 · Universidad Demo
-        </div>
       </div>
     </div>
   );

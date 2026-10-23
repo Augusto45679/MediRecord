@@ -222,10 +222,6 @@ export const RobertoHoyTab: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 12, lineHeight: 1.4, borderTop: '1px solid var(--border-mint)', paddingTop: 10 }}>
-                Silvana recibe la actualización: el aviso queda resuelto. No hace falta que la llames para confirmar.
-              </div>
-
               <button
                 className="btn-outline"
                 onClick={() => {

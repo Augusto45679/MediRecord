@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
+import { LoginGoogleConfirmScreen } from './LoginGoogleConfirmScreen';
 import {
   ArrowRight,
   Check,
@@ -13,11 +14,24 @@ import {
 
 interface SilvanaAccessFlowProps {
   onComplete: () => void;
+  initialStep?: number;
 }
 
-export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete }) => {
-  const { setSilvanaAlertWait, state } = useMediRecord();
-  const [step, setStep] = useState(1);
+export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete, initialStep = 0 }) => {
+  const { setSilvanaAlertWait, state, setSpecialView } = useMediRecord();
+  const [step, setStep] = useState(initialStep);
+
+  // STEP 0: Log in 2 con Google para Silvana
+  if (step === 0) {
+    return (
+      <LoginGoogleConfirmScreen
+        role="silvana"
+        onConfirmAccount={() => setStep(1)}
+        onChooseOtherAccount={() => setSpecialView('login-1')}
+        onSwitchRole={() => setSpecialView('onboarding-roberto')}
+      />
+    );
+  }
 
   const waitOptions = [
     { minutes: 30, label: '30 minutos', desc: 'Aviso rápido ante tomas críticas' },

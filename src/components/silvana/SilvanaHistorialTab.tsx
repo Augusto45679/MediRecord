@@ -160,15 +160,15 @@ export const SilvanaHistorialTab: React.FC = () => {
       ))}
 
       {/* Distinctions Footnote (K-04) */}
-      <div className="card-white" style={{ borderLeft: '4px solid var(--color-primary)', fontSize: 13, lineHeight: 1.4, color: 'var(--color-muted)' }}>
+      {/* <div className="card-white" style={{ borderLeft: '4px solid var(--color-primary)', fontSize: 13, lineHeight: 1.4, color: 'var(--color-muted)' }}>
         <strong>Distinción de estados:</strong>
         <div style={{ marginTop: 4 }}>
           • <strong>Sin confirmar:</strong> No sabemos si la tomó (aviso a los 60 min).
         </div>
         <div style={{ marginTop: 2 }}>
           • <strong>No tomada:</strong> Roberto lo indicó explícitamente.
-        </div>
-      </div>
+        </div> */}
+      
     </div>
   );
 };

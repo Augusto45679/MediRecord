@@ -149,10 +149,10 @@ export const RobertoHistorialTab: React.FC = () => {
         </div>
       ))}
 
-      {/* Explanatory footer note */}
+      {/* Explanatory footer note
       <div className="card-mint" style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--color-primary-dark)' }}>
         <strong>Nota importante:</strong> «Sin confirmar» significa que no hubo registro a tiempo, no afirma que no se tomó. Solo vos podés confirmar tus tomas.
-      </div>
+      </div> */}
     </div>
   );
 };

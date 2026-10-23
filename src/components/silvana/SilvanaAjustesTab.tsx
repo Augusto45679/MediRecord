@@ -359,7 +359,7 @@ export const SilvanaAjustesTab: React.FC = () => {
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                Código de invitación (L-01)
+                Código de invitación
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>
                 Código: {state.familyCode}
@@ -454,10 +454,6 @@ export const SilvanaAjustesTab: React.FC = () => {
         >
           <LogOut size={16} /> Cambiar al modo de Roberto (Paciente)
         </button>
-
-        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-muted-light)', marginTop: 8 }}>
-          MediRecord Familiar v1.0 · Universidad Demo
-        </div>
       </div>
     </div>
   );

@@ -6,8 +6,7 @@ import {
   PhoneCall,
   Clock,
   ShieldCheck,
-  Check,
-  Info
+  Check
 } from 'lucide-react';
 
 export const SilvanaResumenTab: React.FC = () => {
@@ -262,13 +261,13 @@ export const SilvanaResumenTab: React.FC = () => {
         </div>
       </div>
 
-      {/* Educational notice */}
+      {/* Educational notice
       <div className="card-mint" style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 14 }}>
         <Info size={18} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
         <div style={{ fontSize: 12, lineHeight: 1.4, color: 'var(--color-primary-dark)' }}>
           <strong>Acompañamiento respetuoso:</strong> La aplicación no sustituye las indicaciones médicas. Silvana solo recibe alertas por omisión o retraso de confirmación.
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

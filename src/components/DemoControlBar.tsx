@@ -728,6 +728,71 @@ export const DemoControlBar: React.FC = () => {
                       Ver Pantalla de Bienvenida
                     </button>
                   </div>
+
+                  {/* Login Flow Card */}
+                  <div style={{
+                    background: '#1F2E29',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: 12,
+                    padding: '10px 12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6
+                  }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>🔑 Log In & Validación Google</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#D1FAE5' }}>
+                      Pantalla Log In 1 (correo/Google) y Log In 2 para Roberto y Silvana.
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
+                      <button
+                        onClick={() => setSpecialView('login-1')}
+                        style={{
+                          background: '#07564F',
+                          border: '1px solid #34D399',
+                          color: '#FFFFFF',
+                          borderRadius: 8,
+                          padding: '5px 10px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Ver Log In 1
+                      </button>
+                      <button
+                        onClick={() => setSpecialView('login-2-roberto')}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.18)',
+                          color: '#6EE7B7',
+                          borderRadius: 8,
+                          padding: '5px 10px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Log In 2 Roberto
+                      </button>
+                      <button
+                        onClick={() => setSpecialView('login-2-silvana')}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.18)',
+                          color: '#93C5FD',
+                          borderRadius: 8,
+                          padding: '5px 10px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Log In 2 Silvana
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -836,6 +901,14 @@ export const DemoControlBar: React.FC = () => {
 
                     <button
                       className="demo-chip-btn"
+                      onClick={() => setSpecialView('login-2-roberto')}
+                      style={{ border: '1px solid #34D399', color: '#6EE7B7' }}
+                    >
+                      Log In 2 Roberto (Google)
+                    </button>
+
+                    <button
+                      className="demo-chip-btn"
                       onClick={() => setShowInviteModal(true)}
                     >
                       Invitación recibida
@@ -900,6 +973,14 @@ export const DemoControlBar: React.FC = () => {
                     >
                       Onboarding Silvana
                     </button>
+
+                    <button
+                      className="demo-chip-btn"
+                      onClick={() => setSpecialView('login-2-silvana')}
+                      style={{ border: '1px solid #60A5FA', color: '#93C5FD' }}
+                    >
+                      Log In 2 Silvana (Google)
+                    </button>
                   </div>
                 </div>
 
@@ -910,6 +991,28 @@ export const DemoControlBar: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 6 }}>
+                    <button
+                      className="demo-chip-btn"
+                      onClick={() => setSpecialView('login-1')}
+                      style={{ border: '1px solid #FCD34D', color: '#FDE68A', fontWeight: 700 }}
+                    >
+                      Log In 1 (Inicio / Correo)
+                    </button>
+
+                    <button
+                      className="demo-chip-btn"
+                      onClick={() => setSpecialView('login-2-roberto')}
+                    >
+                      Log In 2 (Roberto)
+                    </button>
+
+                    <button
+                      className="demo-chip-btn"
+                      onClick={() => setSpecialView('login-2-silvana')}
+                    >
+                      Log In 2 (Silvana)
+                    </button>
+
                     <button
                       className="demo-chip-btn"
                       onClick={() => setSpecialView('welcome')}

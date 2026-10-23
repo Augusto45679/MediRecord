@@ -6,7 +6,14 @@ export type DoseStatus = 'pending' | 'taken' | 'omitted' | 'unconfirmed';
 
 export type FontSizePreference = 'normal' | 'large' | 'xlarge';
 
-export type SpecialView = 'none' | 'welcome' | 'onboarding-roberto' | 'onboarding-silvana';
+export type SpecialView =
+  | 'none'
+  | 'welcome'
+  | 'onboarding-roberto'
+  | 'onboarding-silvana'
+  | 'login-1'
+  | 'login-2-roberto'
+  | 'login-2-silvana';
 
 export interface DoseRecord {
   id: string;

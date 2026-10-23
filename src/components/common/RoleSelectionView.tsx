@@ -10,7 +10,7 @@ interface RoleSelectionViewProps {
 }
 
 export const RoleSelectionView: React.FC<RoleSelectionViewProps> = ({ onSelectRole }) => {
-  const { setRole } = useMediRecord();
+  const { setRole, setSpecialView } = useMediRecord();
   const [onboarding, setOnboarding] = useState<UserRole | null>(null);
 
   const handleChoose = (role: UserRole) => {
@@ -177,6 +177,28 @@ export const RoleSelectionView: React.FC<RoleSelectionViewProps> = ({ onSelectRo
             <ArrowRight size={20} color="var(--color-primary)" />
           </button>
         </div>
+
+        {/* Acceso directo a Log In */}
+        <div style={{ marginTop: 18, textAlign: 'center' }}>
+          <button
+            onClick={() => {
+              setRole('roberto');
+              setSpecialView('login-1');
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--color-primary)',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: '6px 12px'
+            }}
+          >
+            ¿Ya tenés una cuenta? Iniciar sesión
+          </button>
+        </div>
       </div>
 
       {/* Footer Info */}
@@ -188,14 +210,10 @@ export const RoleSelectionView: React.FC<RoleSelectionViewProps> = ({ onSelectRo
           fontSize: 12,
           color: 'var(--color-muted)',
           justifyContent: 'center',
-          marginBottom: 8
+          marginBottom: 4
         }}>
           <ShieldCheck size={16} color="var(--color-primary)" />
           <span>Tus datos y registros están seguros en tu dispositivo</span>
-        </div>
-
-        <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-muted-light)' }}>
-          Prototipo de alta fidelidad para evaluación académica
         </div>
       </div>
     </div>

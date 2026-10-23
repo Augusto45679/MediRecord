@@ -5,6 +5,8 @@ import { DemoControlBar } from './components/DemoControlBar';
 import { RoleSelectionView } from './components/common/RoleSelectionView';
 import { RobertoAccessFlow } from './components/common/RobertoAccessFlow';
 import { SilvanaAccessFlow } from './components/common/SilvanaAccessFlow';
+import { LoginInitialScreen } from './components/common/LoginInitialScreen';
+import { LoginGoogleConfirmScreen } from './components/common/LoginGoogleConfirmScreen';
 
 const MediRecordAppInner: React.FC = () => {
   const { state, setRole, setSpecialView } = useMediRecord();
@@ -13,7 +15,54 @@ const MediRecordAppInner: React.FC = () => {
   return (
     <div className="presentation-layout">
       {/* Phone container */}
-      {specialView === 'welcome' ? (
+      {specialView === 'login-1' ? (
+        <div className="phone-mockup-frame">
+          <LoginInitialScreen
+            currentRole={state.currentRole}
+            onGoogleLogin={(role) => {
+              const target = role || state.currentRole;
+              setRole(target);
+              setSpecialView(target === 'silvana' ? 'login-2-silvana' : 'login-2-roberto');
+            }}
+            onEmailLogin={(email, role) => {
+              const target = role || (email.toLowerCase().includes('silvana') ? 'silvana' : 'roberto');
+              setRole(target);
+              setSpecialView('none');
+            }}
+            onNavigateToRoleSelection={() => setSpecialView('welcome')}
+          />
+        </div>
+      ) : specialView === 'login-2-roberto' ? (
+        <div className="phone-mockup-frame">
+          <LoginGoogleConfirmScreen
+            role="roberto"
+            onConfirmAccount={() => {
+              setRole('roberto');
+              setSpecialView('onboarding-roberto');
+            }}
+            onChooseOtherAccount={() => setSpecialView('login-1')}
+            onSwitchRole={(newRole) => {
+              setRole(newRole);
+              setSpecialView(newRole === 'silvana' ? 'login-2-silvana' : 'login-2-roberto');
+            }}
+          />
+        </div>
+      ) : specialView === 'login-2-silvana' ? (
+        <div className="phone-mockup-frame">
+          <LoginGoogleConfirmScreen
+            role="silvana"
+            onConfirmAccount={() => {
+              setRole('silvana');
+              setSpecialView('onboarding-silvana');
+            }}
+            onChooseOtherAccount={() => setSpecialView('login-1')}
+            onSwitchRole={(newRole) => {
+              setRole(newRole);
+              setSpecialView(newRole === 'silvana' ? 'login-2-silvana' : 'login-2-roberto');
+            }}
+          />
+        </div>
+      ) : specialView === 'welcome' ? (
         <div className="phone-mockup-frame">
           <RoleSelectionView
             onSelectRole={(role) => {

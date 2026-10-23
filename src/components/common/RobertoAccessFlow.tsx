@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
 import type { FontSizePreference } from '../../types';
+import { LoginGoogleConfirmScreen } from './LoginGoogleConfirmScreen';
 import {
   ArrowRight,
   Check,
@@ -13,11 +14,24 @@ import {
 
 interface RobertoAccessFlowProps {
   onComplete: () => void;
+  initialStep?: number;
 }
 
-export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete }) => {
-  const { setFontSize, state } = useMediRecord();
-  const [step, setStep] = useState(1);
+export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete, initialStep = 0 }) => {
+  const { setFontSize, state, setSpecialView } = useMediRecord();
+  const [step, setStep] = useState(initialStep);
+
+  // STEP 0: Log in 2 con Google para Roberto
+  if (step === 0) {
+    return (
+      <LoginGoogleConfirmScreen
+        role="roberto"
+        onConfirmAccount={() => setStep(1)}
+        onChooseOtherAccount={() => setSpecialView('login-1')}
+        onSwitchRole={() => setSpecialView('onboarding-silvana')}
+      />
+    );
+  }
 
   const fontSizes: { id: FontSizePreference; label: string; preview: string }[] = [
     { id: 'normal', label: 'Normal', preview: 'Aa' },
