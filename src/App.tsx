@@ -38,7 +38,7 @@ const MediRecordAppInner: React.FC = () => {
             role="roberto"
             onConfirmAccount={() => {
               setRole('roberto');
-              setSpecialView('onboarding-roberto');
+              setSpecialView('welcome');
             }}
             onChooseOtherAccount={() => setSpecialView('login-1')}
             onSwitchRole={(newRole) => {
@@ -53,7 +53,7 @@ const MediRecordAppInner: React.FC = () => {
             role="silvana"
             onConfirmAccount={() => {
               setRole('silvana');
-              setSpecialView('onboarding-silvana');
+              setSpecialView('welcome');
             }}
             onChooseOtherAccount={() => setSpecialView('login-1')}
             onSwitchRole={(newRole) => {

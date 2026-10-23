@@ -17,7 +17,7 @@ interface SilvanaAccessFlowProps {
   initialStep?: number;
 }
 
-export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete, initialStep = 0 }) => {
+export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete, initialStep = 1 }) => {
   const { setSilvanaAlertWait, state, setSpecialView } = useMediRecord();
   const [step, setStep] = useState(initialStep);
 

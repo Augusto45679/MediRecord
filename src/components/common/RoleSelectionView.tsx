@@ -127,7 +127,7 @@ export const RoleSelectionView: React.FC<RoleSelectionViewProps> = ({ onSelectRo
                 Tomo medicinas
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.35 }}>
-                Recorrido de <strong>Roberto Gómez</strong>. Recordatorios claros, confirmación con un toque y voz.
+                Recordatorios claros, confirmación con un toque y voz.
               </div>
             </div>
 
@@ -170,7 +170,7 @@ export const RoleSelectionView: React.FC<RoleSelectionViewProps> = ({ onSelectRo
                 Soy familiar o cuidador
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 2, lineHeight: 1.35 }}>
-                Recorrido de <strong>Silvana Gómez</strong>. Carga de recetas y aviso únicamente ante omisiones.
+                Carga de recetas y aviso únicamente ante omisiones.
               </div>
             </div>
 

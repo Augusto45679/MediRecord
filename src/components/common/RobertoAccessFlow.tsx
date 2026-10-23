@@ -17,7 +17,7 @@ interface RobertoAccessFlowProps {
   initialStep?: number;
 }
 
-export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete, initialStep = 0 }) => {
+export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete, initialStep = 1 }) => {
   const { setFontSize, state, setSpecialView } = useMediRecord();
   const [step, setStep] = useState(initialStep);
 

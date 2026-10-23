@@ -12,9 +12,12 @@ import {
   Vibrate,
   LogOut,
   ShieldCheck,
-  KeyRound,
   Copy,
-  Share2
+  Share2,
+  Send,
+  CheckCircle2,
+  ShieldAlert,
+  Clock
 } from 'lucide-react';
 
 export const SilvanaAjustesTab: React.FC = () => {
@@ -24,10 +27,14 @@ export const SilvanaAjustesTab: React.FC = () => {
     setSoundEnabled,
     setVibrationEnabled,
     setRole,
+    setPendingInvitation,
+    toggleFamilyLink,
     showToast
   } = useMediRecord();
 
   const [activeSubscreen, setActiveSubscreen] = useState<'main' | 'avisos' | 'vinculo' | 'codigo' | 'accesibilidad'>('main');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitationSent, setInvitationSent] = useState(false);
 
   const waitOptions = [
     { minutes: 30, label: '30 minutos', desc: 'Aviso rápido ante tomas críticas' },
@@ -140,137 +147,247 @@ export const SilvanaAjustesTab: React.FC = () => {
     );
   }
 
-  // Subscreen: Roberto · Vínculo
-  if (activeSubscreen === 'vinculo') {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div>
-          <button className="btn-back" onClick={() => setActiveSubscreen('main')}>
-            <ArrowLeft size={16} /> Volver
-          </button>
-        </div>
-
-        <div>
-          <h1 className="screen-title" style={{ fontSize: 24 }}>
-            Vínculo con Roberto
-          </h1>
-          <div className="screen-subtitle">
-            Permiso y consentimiento activo
-          </div>
-        </div>
-
-        <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <ShieldCheck size={28} color="var(--color-primary)" />
-            <div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                Roberto Gómez
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 600 }}>
-                Consentimiento otorgado
-              </div>
-            </div>
-          </div>
-
-          <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4, borderTop: '1px solid var(--border-mint)', paddingTop: 10 }}>
-            Código de invitación utilizado: <strong>{state.familyCode}</strong>
-            <br /><br />
-            Roberto te otorgó permiso para cargar sus medicinas y horarios. Podés consultar sus registros, pero el acceso depende de que él mantenga su consentimiento.
-          </div>
-
-          <button
-            className="btn-soft"
-            onClick={() => setActiveSubscreen('codigo')}
-            style={{ marginTop: 6 }}
-          >
-            <KeyRound size={16} /> Ver pantalla de código para compartir
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Subscreen: Código de invitación (L-01)
-  if (activeSubscreen === 'codigo') {
+  // Subscreen: Vínculo Familiar & Enviar Invitación
+  if (activeSubscreen === 'vinculo' || activeSubscreen === 'codigo') {
     const handleCopy = () => {
       showToast('Código copiado', 'success', `El código ${state.familyCode} fue copiado al portapapeles.`);
+    };
+
+    const handleSendInvitation = (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      const targetEmail = inviteEmail.trim() || 'roberto.gomez@gmail.com';
+      setPendingInvitation(true);
+      setInvitationSent(true);
+      showToast(
+        '¡Invitación enviada!',
+        'success',
+        `Se envió la invitación a ${targetEmail}. Código: ${state.familyCode}`
+      );
     };
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <button className="btn-back" onClick={() => setActiveSubscreen('main')}>
-            <ArrowLeft size={16} /> Volver
+            <ArrowLeft size={16} /> Volver a Ajustes
           </button>
         </div>
 
         <div>
           <h1 className="screen-title" style={{ fontSize: 24 }}>
-            Invitar a tu familiar
+            {state.familyLinked ? 'Vínculo familiar' : 'Vincular a tu familiar'}
           </h1>
           <div className="screen-subtitle">
-            Compartí este código para vincular a Roberto
+            {state.familyLinked
+              ? 'Consentimiento y acompañamiento activo'
+              : 'Enviá una invitación para comenzar el acompañamiento'}
           </div>
         </div>
 
-        <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 14, padding: 24 }}>
-          <div style={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            backgroundColor: 'var(--color-primary)',
-            color: 'white',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <KeyRound size={28} />
-          </div>
-
-          <div>
-            <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--color-primary)', fontWeight: 700 }}>
-              Código de invitación
+        {/* SI YA ESTÁ VINCULADO */}
+        {state.familyLinked ? (
+          <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                width: 48,
+                height: 48,
+                borderRadius: '50%',
+                backgroundColor: 'var(--color-primary)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <ShieldCheck size={26} />
+              </div>
+              <div>
+                <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--color-primary-dark)' }}>
+                  Roberto Gómez
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <CheckCircle2 size={14} /> Consentimiento activo
+                </div>
+              </div>
             </div>
+
+            <div style={{ fontSize: 13.5, color: 'var(--color-muted)', lineHeight: 1.45, borderTop: '1px solid var(--border-mint)', paddingTop: 12 }}>
+              Roberto te otorgó permiso para cargar sus medicinas y horarios. Solo recibís avisos ante omisiones críticas.
+              <br /><br />
+              Código utilizado: <strong style={{ color: 'var(--color-primary-dark)', letterSpacing: 1 }}>{state.familyCode}</strong>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+              <button
+                className="btn-soft"
+                onClick={handleCopy}
+              >
+                <Copy size={16} /> Copiar código de vinculación ({state.familyCode})
+              </button>
+
+              <button
+                className="btn-danger-outline"
+                onClick={() => {
+                  toggleFamilyLink(false);
+                  setInvitationSent(false);
+                  showToast('Familiar desvinculado', 'info', 'Se retiró el vínculo. Podés enviar una nueva invitación.');
+                }}
+              >
+                <ShieldAlert size={16} /> Desvincular familiar
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* SI NO ESTÁ VINCULADO: FLUJO GENÉRICO DE INVITACIÓN */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Formulario de Envío de Invitación */}
+            <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--bg-mint)',
+                  color: 'var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Send size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    Enviar invitación por correo
+                  </div>
+                  <div style={{ fontSize: 12.5, color: 'var(--color-muted)' }}>
+                    Ingresá el mail de la persona que querés acompañar
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSendInvitation} style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="ejemplo: roberto.gomez@gmail.com"
+                  style={{
+                    width: '100%',
+                    padding: '13px 16px',
+                    borderRadius: 14,
+                    border: '1.5px solid #C4D6CD',
+                    backgroundColor: '#FFFFFF',
+                    fontSize: 15,
+                    color: '#153E3A',
+                    boxSizing: 'border-box',
+                    outline: 'none',
+                    fontFamily: 'inherit'
+                  }}
+                />
+
+                {!inviteEmail && (
+                  <button
+                    type="button"
+                    onClick={() => setInviteEmail('roberto.gomez@gmail.com')}
+                    style={{
+                      alignSelf: 'flex-start',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--color-primary)',
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Sugerencia: roberto.gomez@gmail.com
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ marginTop: 4 }}
+                >
+                  <Send size={16} /> Enviar invitación
+                </button>
+              </form>
+            </div>
+
+            {/* Aviso de Invitación pendiente */}
+            {(state.pendingInvitation || invitationSent) && (
+              <div className="card-amber" style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <Clock size={20} color="var(--alert-amber-text)" style={{ flexShrink: 0, marginTop: 2 }} />
+                <div style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--alert-amber-text)' }}>
+                  <strong>Invitación enviada:</strong> Se notificó a {inviteEmail || 'roberto.gomez@gmail.com'}. En cuanto ingrese el código en su app o responda la invitación, quedarán vinculados de inmediato.
+                </div>
+              </div>
+            )}
+
+            {/* Tarjeta con Código de Vinculación */}
+            <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12, padding: '22px 16px' }}>
+              <div style={{
+                fontSize: 12,
+                textTransform: 'uppercase',
+                letterSpacing: 1.2,
+                color: 'var(--color-primary)',
+                fontWeight: 800
+              }}>
+                Código de vinculación directa
+              </div>
+
+              <div style={{
+                fontSize: 34,
+                fontWeight: 800,
+                letterSpacing: 6,
+                color: 'var(--color-primary-dark)',
+                fontFamily: 'monospace',
+                background: '#FFFFFF',
+                padding: '8px 24px',
+                borderRadius: 14,
+                border: '1.5px solid var(--border-mint)'
+              }}>
+                {state.familyCode}
+              </div>
+
+              <div style={{ fontSize: 13.5, color: 'var(--color-muted)', lineHeight: 1.45, maxWidth: 320 }}>
+                Tu familiar puede ingresar este código en la sección <strong>«Mi persona de apoyo»</strong> dentro de sus Ajustes para autorizar tu acompañamiento.
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, width: '100%', marginTop: 6, flexWrap: 'wrap' }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleCopy}
+                  style={{ flex: 1, minHeight: 46, fontSize: 14 }}
+                >
+                  <Copy size={16} /> Copiar código
+                </button>
+
+                <button
+                  className="btn-soft"
+                  onClick={() => {
+                    showToast('Enlace enviado', 'info', `Se compartió la invitación con el código ${state.familyCode}.`);
+                  }}
+                  style={{ flex: 1, minHeight: 46, fontSize: 14 }}
+                >
+                  <Share2 size={16} /> Compartir
+                </button>
+              </div>
+            </div>
+
             <div style={{
-              fontSize: 34,
-              fontWeight: 800,
-              letterSpacing: 6,
-              color: 'var(--color-primary-dark)',
-              marginTop: 6,
-              fontFamily: 'monospace'
+              fontSize: 12,
+              color: 'var(--color-muted-light)',
+              textAlign: 'center',
+              lineHeight: 1.4,
+              padding: '0 10px'
             }}>
-              {state.familyCode}
+              Por seguridad y respeto a la autonomía, la vinculación siempre requiere el consentimiento explícito de la persona que toma las medicinas.
             </div>
           </div>
-
-          <div style={{ fontSize: 14, color: 'var(--color-muted)', lineHeight: 1.45 }}>
-            Roberto debe ingresar este código en la sección <strong>«Mi persona de apoyo»</strong> dentro de sus Ajustes para autorizar tu acompañamiento.
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <button className="btn-primary" onClick={handleCopy}>
-            <Copy size={18} /> Copiar código de invitación
-          </button>
-
-          <button
-            className="btn-soft"
-            onClick={() => {
-              showToast('Enlace enviado', 'info', `Se compartió la invitación con el código ${state.familyCode}.`);
-            }}
-          >
-            <Share2 size={18} /> Compartir por WhatsApp o Mensaje
-          </button>
-        </div>
-
-        <div style={{
-          fontSize: 12,
-          color: 'var(--color-muted-light)',
-          textAlign: 'center',
-          lineHeight: 1.4
-        }}>
-          La vinculación requiere que Roberto dé su consentimiento explícito en su teléfono.
-        </div>
+        )}
       </div>
     );
   }
@@ -293,7 +410,7 @@ export const SilvanaAjustesTab: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {/* Option 1: Vínculo con Roberto */}
+        {/* Único botón de Vínculo e Invitación en Ajustes */}
         <div
           className="card-white"
           onClick={() => setActiveSubscreen('vinculo')}
@@ -321,55 +438,21 @@ export const SilvanaAjustesTab: React.FC = () => {
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                Roberto · Vínculo
+                Vínculo familiar
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>
-                {state.familyLinked ? 'Permiso otorgado por Roberto' : 'Vínculo desvinculado / pendiente'}
+                {state.familyLinked
+                  ? 'Vinculado con Roberto Gómez (Consentimiento activo)'
+                  : state.pendingInvitation
+                  ? `Invitación enviada · Código: ${state.familyCode}`
+                  : 'Sin vincular · Enviá una invitación a tu familiar'}
               </div>
             </div>
           </div>
           <ChevronRight size={20} color="var(--color-muted-light)" />
         </div>
 
-        {/* Option 2: Compartir código (L-01) */}
-        <div
-          className="card-white"
-          onClick={() => setActiveSubscreen('codigo')}
-          style={{
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '18px 20px'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{
-              width: 40,
-              height: 40,
-              borderRadius: '50%',
-              backgroundColor: 'var(--bg-mint)',
-              color: 'var(--color-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <KeyRound size={20} />
-            </div>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                Código de invitación
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--color-muted)' }}>
-                Código: {state.familyCode}
-              </div>
-            </div>
-          </div>
-          <ChevronRight size={20} color="var(--color-muted-light)" />
-        </div>
-
-        {/* Option 3: Avisos · Preferencias */}
+        {/* Option 2: Avisos · Preferencias */}
         <div
           className="card-white"
           onClick={() => setActiveSubscreen('avisos')}
