@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
-import type { Medicine } from '../../types';
+import type { Medicine, DayOfWeek } from '../../types';
+import {
+  ALL_DAYS,
+  formatDaysFrequency,
+  formatScheduleSummary
+} from '../../utils/scheduleUtils';
+import { DaysOfWeekSelector, DaysBadgeRow } from './DaysOfWeekSelector';
 import {
   Plus,
   Pill,
@@ -21,6 +27,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
   const {
     state,
     addMedicine,
+    updateMedicine,
     togglePauseMedicine,
     deleteMedicine,
     showToast
@@ -38,6 +45,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
   const [editDose, setEditDose] = useState('');
   const [editTime1, setEditTime1] = useState('');
   const [editTime2, setEditTime2] = useState('');
+  const [editDays, setEditDays] = useState<DayOfWeek[]>(ALL_DAYS);
 
   // Add Wizard State (Steps 1 to 4 from I-02 to I-05)
   const [addStep, setAddStep] = useState(1);
@@ -45,33 +53,46 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
   const [newMedDose, setNewMedDose] = useState('1 comprimido de 10 mg');
   const [newMedTime1, setNewMedTime1] = useState('09:00');
   const [newMedTime2, setNewMedTime2] = useState('');
+  const [newMedDays, setNewMedDays] = useState<DayOfWeek[]>(ALL_DAYS);
 
   const handleOpenEdit = (med: Medicine) => {
     setEditingMed(med);
     setEditDose(med.dose);
     setEditTime1(med.times[0] || '');
     setEditTime2(med.times[1] || '');
+    setEditDays(med.days && med.days.length > 0 ? med.days : ALL_DAYS);
   };
 
   const handleSaveEdit = () => {
-    if (!editingMed) return;
+    if (!editingMed || editDays.length === 0) return;
     const times = [editTime1];
     if (editTime2.trim()) times.push(editTime2);
 
-    deleteMedicine(editingMed.id);
-    addMedicine({
+    const frequency = formatDaysFrequency(editDays);
+
+    updateMedicine(editingMed.id, {
       name: editingMed.name,
       dose: editDose,
       concentration: editDose.split('de ')[1] || editingMed.concentration,
       amount: editDose.split(' de')[0] || editingMed.amount,
       times,
-      frequency: editingMed.frequency,
-      addedBy: editingMed.addedBy,
-      status: editingMed.status
+      days: editDays,
+      frequency
     });
+
+    if (selectedMed && selectedMed.id === editingMed.id) {
+      setSelectedMed({
+        ...selectedMed,
+        dose: editDose,
+        concentration: editDose.split('de ')[1] || selectedMed.concentration,
+        amount: editDose.split(' de')[0] || selectedMed.amount,
+        times,
+        days: editDays,
+        frequency
+      });
+    }
+
     setEditingMed(null);
-    setSelectedMed(null);
-    showToast('Cambios guardados', 'success', `${editingMed.name} fue actualizada.`);
   };
 
   const handleStartAdd = () => {
@@ -80,14 +101,17 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
     setNewMedDose('1 comprimido de 10 mg');
     setNewMedTime1('09:00');
     setNewMedTime2('');
+    setNewMedDays([...ALL_DAYS]);
     setShowAddModal(true);
   };
 
   const handleFinishAdd = () => {
-    if (!newMedName.trim()) return;
+    if (!newMedName.trim() || newMedDays.length === 0) return;
 
     const times = [newMedTime1];
     if (newMedTime2.trim()) times.push(newMedTime2);
+
+    const frequency = formatDaysFrequency(newMedDays);
 
     addMedicine({
       name: newMedName.trim(),
@@ -95,7 +119,8 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
       concentration: newMedDose.split('de ')[1] || '10 mg',
       amount: newMedDose.split(' de')[0] || '1 comprimido',
       times,
-      frequency: 'Todos los días',
+      days: newMedDays,
+      frequency,
       addedBy: isRoberto ? 'Roberto' : 'Silvana',
       status: 'active'
     });
@@ -115,7 +140,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {selectedMed ? (
-        /* Details of a medicine (Screen H-02) */
+        /* Details of a medicine (Screen H-02 / Image 18) */
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <button className="btn-back" onClick={() => setSelectedMed(null)}>
@@ -146,8 +171,11 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
                 Frecuencia
               </div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-primary-dark)', marginTop: 2 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: 2 }}>
                 {selectedMed.frequency}
+              </div>
+              <div style={{ marginTop: 4 }}>
+                <DaysBadgeRow days={selectedMed.days} />
               </div>
             </div>
 
@@ -155,7 +183,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
                 Horarios
               </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                 {selectedMed.times.map(t => (
                   <span
                     key={t}
@@ -243,89 +271,103 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
             </div>
           </div>
 
-      {/* Medicine list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {state.medicines.map(med => {
-          const isPaused = med.status === 'paused';
-          return (
-            <div
-              key={med.id}
-              className="card-white"
-              onClick={() => setSelectedMed(med)}
-              role="button"
-              tabIndex={0}
-              style={{
-                opacity: isPaused ? 0.75 : 1,
-                border: isPaused ? '1px dashed var(--border-mint)' : '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '16px 18px',
-                cursor: 'pointer',
-                gap: 12
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  backgroundColor: isPaused ? 'var(--border-subtle)' : 'var(--bg-mint)',
-                  color: isPaused ? 'var(--color-muted)' : 'var(--color-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <Pill size={22} />
-                </div>
+          {/* Medicine list */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {state.medicines.map(med => {
+              const isPaused = med.status === 'paused';
+              return (
+                <div
+                  key={med.id}
+                  className="card-white"
+                  onClick={() => setSelectedMed(med)}
+                  role="button"
+                  tabIndex={0}
+                  style={{
+                    opacity: isPaused ? 0.75 : 1,
+                    border: isPaused ? '1px dashed var(--border-mint)' : '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '16px 18px',
+                    cursor: 'pointer',
+                    gap: 12
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    <div
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        backgroundColor: isPaused ? 'var(--border-subtle)' : 'var(--bg-mint)',
+                        color: isPaused ? 'var(--color-muted)' : 'var(--color-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      <Pill size={22} />
+                    </div>
 
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                      {med.name}
-                    </span>
-                    <span style={{
-                      fontSize: 11,
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                          {med.name}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            backgroundColor: isPaused ? '#FEE2E2' : 'var(--bg-mint)',
+                            color: isPaused ? '#B91C1C' : 'var(--color-primary)'
+                          }}
+                        >
+                          {isPaused ? 'Pausada' : 'Activa'}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 2 }}>
+                        {med.dose}
+                      </div>
+
+                      <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4 }}>
+                        {med.frequency} · {med.times.join(' y ')}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      color: 'var(--color-primary)',
+                      fontSize: 13,
                       fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: 999,
-                      backgroundColor: isPaused ? '#FEE2E2' : 'var(--bg-mint)',
-                      color: isPaused ? '#B91C1C' : 'var(--color-primary)'
-                    }}>
-                      {isPaused ? 'Pausada' : 'Activa'}
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 2 }}>
-                    {med.dose}
-                  </div>
-
-                  <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4 }}>
-                    {med.frequency} · {med.times.join(' y ')}
+                      flexShrink: 0
+                    }}
+                  >
+                    <span>Ver</span>
+                    <ChevronRight size={18} />
                   </div>
                 </div>
-              </div>
+              );
+            })}
+          </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-primary)', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
-                <span>Ver</span>
-                <ChevronRight size={18} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+          {/* Add medicine button */}
+          <button className="btn-primary" onClick={handleStartAdd}>
+            <Plus size={20} /> Añadir medicina
+          </button>
 
-      {/* Add medicine button */}
-      <button className="btn-primary" onClick={handleStartAdd}>
-        <Plus size={20} /> Añadir medicina
-      </button>
-
-      {/* Guidance footnote */}
-      <div className="card-mint" style={{ fontSize: 13, color: 'var(--color-primary-dark)', lineHeight: 1.4 }}>
-        <strong>Importante:</strong> Solo Roberto puede confirmar sus tomas. La app conserva el historial aunque una medicina sea pausada o eliminada.
-      </div>
-      </>
+          {/* Guidance footnote */}
+          <div className="card-mint" style={{ fontSize: 13, color: 'var(--color-primary-dark)', lineHeight: 1.4 }}>
+            <strong>Importante:</strong> Solo Roberto puede confirmar sus tomas. La app conserva el historial aunque una medicina sea pausada o eliminada.
+          </div>
+        </>
       )}
 
       {/* ADD MEDICINE WIZARD MODAL (Steps 1 to 4 from I-02..I-05) */}
@@ -382,6 +424,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
 
                 <button
                   className="btn-primary"
+                  data-testid="wizard-step1-continue"
                   disabled={!newMedName.trim()}
                   onClick={() => setAddStep(2)}
                   style={{ opacity: newMedName.trim() ? 1 : 0.5 }}
@@ -422,25 +465,44 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                   />
                 </div>
 
-                <button className="btn-primary" onClick={() => setAddStep(3)}>
+                <button
+                  className="btn-primary"
+                  data-testid="wizard-step2-continue"
+                  onClick={() => setAddStep(3)}
+                >
                   Continuar
                 </button>
               </div>
             )}
 
-            {/* STEP 3: Times */}
+            {/* STEP 3: Days & Times */}
             {addStep === 3 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <h2 className="screen-title" style={{ fontSize: 22 }}>
-                  ¿A qué hora le toca?
+                  ¿Qué días y a qué hora le toca?
                 </h2>
                 <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
-                  Elegí horarios de todos los días. Usa formato de 24 horas.
+                  {isRoberto
+                    ? 'Elegí los días de la semana y los horarios para tus recordatorios.'
+                    : 'Elegí los días de la semana y los horarios para Roberto.'}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* Days of week selector */}
+                <DaysOfWeekSelector
+                  selectedDays={newMedDays}
+                  onChange={setNewMedDays}
+                  label="¿Qué días toma esta medicina?"
+                  subtitle="Toca los días o usa un acceso rápido"
+                />
+
+                {/* Times section */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                    Horarios de las tomas
+                  </div>
+
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 4 }}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
                       Primer horario
                     </label>
                     <input
@@ -459,7 +521,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 4 }}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
                       Segundo horario (opcional)
                     </label>
                     <input
@@ -479,13 +541,19 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                   </div>
                 </div>
 
-                <button className="btn-primary" onClick={() => setAddStep(4)}>
+                <button
+                  className="btn-primary"
+                  data-testid="wizard-step3-continue"
+                  disabled={newMedDays.length === 0 || !newMedTime1}
+                  onClick={() => setAddStep(4)}
+                  style={{ opacity: newMedDays.length > 0 && newMedTime1 ? 1 : 0.5 }}
+                >
                   Continuar
                 </button>
               </div>
             )}
 
-            {/* STEP 4: Summary & Confirm */}
+            {/* STEP 4: Summary & Confirm (Image 48) */}
             {addStep === 4 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <h2 className="screen-title" style={{ fontSize: 22 }}>
@@ -495,23 +563,35 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                   Revisa que coincida con las indicaciones antes de guardar.
                 </div>
 
-                <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                    {newMedName}
+                <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                      {newMedName}
+                    </div>
+                    <div style={{ fontSize: 15, color: 'var(--color-muted)', marginTop: 2 }}>
+                      {newMedDose}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 15, color: 'var(--color-muted)' }}>
-                    {newMedDose}
-                  </div>
-                  <div style={{ fontSize: 14, color: 'var(--color-primary)', fontWeight: 700 }}>
-                    Todos los días a las {newMedTime1} {newMedTime2 ? `y ${newMedTime2}` : ''}
+
+                  <div style={{ borderTop: '1px solid var(--border-mint)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ fontSize: 14, color: 'var(--color-primary)', fontWeight: 700 }}>
+                      {formatScheduleSummary(newMedDays, [newMedTime1, newMedTime2])}
+                    </div>
+                    <div>
+                      <DaysBadgeRow days={newMedDays} />
+                    </div>
                   </div>
                 </div>
 
-                <button className="btn-primary" onClick={handleFinishAdd}>
+                <button
+                  className="btn-primary"
+                  data-testid="wizard-step4-save"
+                  onClick={handleFinishAdd}
+                >
                   <CheckCircle2 size={18} /> Guardar medicina
                 </button>
-                <button className="btn-outline" onClick={() => setAddStep(1)}>
-                  Corregir datos
+                <button className="btn-outline" onClick={() => setAddStep(3)}>
+                  Corregir días u horarios
                 </button>
               </div>
             )}
@@ -595,7 +675,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
         </div>
       )}
 
-      {/* EDIT MODAL (G-12, I-07) — edición real de dosis y horarios */}
+      {/* EDIT MODAL (G-12, I-07 / Image 49) — edición real de dosis, días y horarios */}
       {editingMed && (
         <div className="modal-overlay" onClick={() => setEditingMed(null)}>
           <div className="bottom-sheet" onClick={e => e.stopPropagation()}>
@@ -604,10 +684,12 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
               Editar {editingMed.name}
             </h2>
             <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
-              Ajustá dosis u horarios para Roberto
+              {isRoberto
+                ? 'Ajustá tu dosis, días u horarios'
+                : 'Ajustá dosis, días u horarios para Roberto'}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 4 }}>
                   Dosis por toma
@@ -620,33 +702,53 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 4 }}>
-                  Primer horario
-                </label>
-                <input
-                  type="time"
-                  value={editTime1}
-                  onChange={e => setEditTime1(e.target.value)}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid var(--border-mint)', fontSize: 15, fontFamily: 'inherit' }}
-                />
-              </div>
+              {/* Day selection field in edit modal */}
+              <DaysOfWeekSelector
+                selectedDays={editDays}
+                onChange={setEditDays}
+                label="Días en que se toma"
+                subtitle="Modificá los días de la semana en los que se debe tomar"
+              />
 
-              <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)', marginBottom: 4 }}>
-                  Segundo horario (opcional)
-                </label>
-                <input
-                  type="time"
-                  value={editTime2}
-                  onChange={e => setEditTime2(e.target.value)}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid var(--border-mint)', fontSize: 15, fontFamily: 'inherit' }}
-                />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
+                  Horarios de las tomas
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
+                    Primer horario
+                  </label>
+                  <input
+                    type="time"
+                    value={editTime1}
+                    onChange={e => setEditTime1(e.target.value)}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid var(--border-mint)', fontSize: 15, fontFamily: 'inherit' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
+                    Segundo horario (opcional)
+                  </label>
+                  <input
+                    type="time"
+                    value={editTime2}
+                    onChange={e => setEditTime2(e.target.value)}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid var(--border-mint)', fontSize: 15, fontFamily: 'inherit' }}
+                  />
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-              <button className="btn-primary" onClick={handleSaveEdit}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+              <button
+                className="btn-primary"
+                data-testid="edit-med-save"
+                onClick={handleSaveEdit}
+                disabled={editDays.length === 0 || !editTime1}
+                style={{ opacity: editDays.length > 0 && editTime1 ? 1 : 0.5 }}
+              >
                 <Save size={16} /> Guardar cambios
               </button>
               <button className="btn-outline" onClick={() => setEditingMed(null)}>

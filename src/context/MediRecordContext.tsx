@@ -5,9 +5,11 @@ import type {
   MainTab,
   FontSizePreference,
   SpecialView,
-  Medicine
+  Medicine,
+  DayOfWeek
 } from '../types';
 import { DEFAULT_STATE } from '../data/initialData';
+import { formatDaysFrequency, isScheduledForToday } from '../utils/scheduleUtils';
 
 interface ToastMessage {
   id: string;
@@ -36,6 +38,7 @@ interface MediRecordContextType {
   undoDoseStatus: (doseId: string) => void;
   attendNoticeSilvana: () => void;
   addMedicine: (med: Omit<Medicine, 'id'>) => void;
+  updateMedicine: (id: string, updated: Partial<Omit<Medicine, 'id'>>) => void;
   togglePauseMedicine: (id: string) => void;
   deleteMedicine: (id: string) => void;
   toggleFamilyLink: (linked?: boolean) => void;
@@ -380,21 +383,31 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const addMedicine = (medData: Omit<Medicine, 'id'>) => {
     const id = 'med-' + Date.now();
+    const days = medData.days && medData.days.length > 0 ? medData.days : (['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'] as DayOfWeek[]);
+    const frequency = medData.frequency || formatDaysFrequency(days);
+
     const newMed: Medicine = {
       ...medData,
+      days,
+      frequency,
       id
     };
 
     setState(prev => {
-      // Add corresponding doses to today
-      const newDoses = newMed.times.map((t, idx) => ({
-        id: `dose-${id}-${idx}`,
-        medicineId: id,
-        medicineName: newMed.name,
-        time: t,
-        doseDescription: newMed.dose,
-        status: 'pending' as const
-      }));
+      // In the demo, today is Thursday (Jueves 15 de octubre).
+      // Only schedule doses into today's timeline if this medicine is taken on Thursdays.
+      const shouldScheduleToday = isScheduledForToday(days);
+
+      const newDoses = shouldScheduleToday
+        ? newMed.times.map((t, idx) => ({
+            id: `dose-${id}-${idx}`,
+            medicineId: id,
+            medicineName: newMed.name,
+            time: t,
+            doseDescription: newMed.dose,
+            status: 'pending' as const
+          }))
+        : [];
 
       return {
         ...prev,
@@ -403,7 +416,80 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       };
     });
 
-    showToast('Medicina guardada', 'success', `${medData.name} se agregó al plan de Roberto.`);
+    const isToday = isScheduledForToday(days);
+    showToast(
+      'Medicina guardada',
+      'success',
+      isToday
+        ? `${medData.name} se agregó al plan y a las tomas de hoy.`
+        : `${medData.name} programada para: ${frequency}.`
+    );
+  };
+
+  const updateMedicine = (id: string, updated: Partial<Omit<Medicine, 'id'>>) => {
+    let medName = 'Medicina';
+    let freqText = 'Todos los días';
+
+    setState(prev => {
+      const existingMed = prev.medicines.find(m => m.id === id);
+      if (!existingMed) return prev;
+
+      medName = updated.name || existingMed.name;
+      const updatedDays = updated.days !== undefined ? updated.days : existingMed.days;
+      const updatedFrequency = updated.frequency || formatDaysFrequency(updatedDays);
+      freqText = updatedFrequency;
+
+      const newMed: Medicine = {
+        ...existingMed,
+        ...updated,
+        days: updatedDays,
+        frequency: updatedFrequency
+      };
+
+      const updatedMedicines = prev.medicines.map(m => (m.id === id ? newMed : m));
+
+      // Synchronize today doses
+      const scheduledToday = isScheduledForToday(updatedDays) && newMed.status === 'active';
+      let updatedTodayDoses: typeof prev.todayDoses;
+
+      if (!scheduledToday) {
+        // Not scheduled for today or paused: remove pending doses
+        updatedTodayDoses = prev.todayDoses.filter(d => d.medicineId !== id || d.status !== 'pending');
+      } else {
+        const currentMedDoses = prev.todayDoses.filter(d => d.medicineId === id);
+        const otherDoses = prev.todayDoses.filter(d => d.medicineId !== id);
+
+        const adjustedDoses = newMed.times.map((time, idx) => {
+          const existing = currentMedDoses.find(d => d.time === time) || currentMedDoses[idx];
+          if (existing) {
+            return {
+              ...existing,
+              time,
+              medicineName: newMed.name,
+              doseDescription: newMed.dose
+            };
+          }
+          return {
+            id: `dose-${id}-${idx}-${Date.now()}`,
+            medicineId: id,
+            medicineName: newMed.name,
+            time,
+            doseDescription: newMed.dose,
+            status: 'pending' as const
+          };
+        });
+
+        updatedTodayDoses = [...otherDoses, ...adjustedDoses].sort((a, b) => a.time.localeCompare(b.time));
+      }
+
+      return {
+        ...prev,
+        medicines: updatedMedicines,
+        todayDoses: updatedTodayDoses
+      };
+    });
+
+    showToast('Cambios guardados', 'success', `${medName} fue actualizada (${freqText}).`);
   };
 
   const togglePauseMedicine = (id: string) => {
@@ -504,6 +590,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         undoDoseStatus,
         attendNoticeSilvana,
         addMedicine,
+        updateMedicine,
         togglePauseMedicine,
         deleteMedicine,
         toggleFamilyLink,

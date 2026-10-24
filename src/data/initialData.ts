@@ -8,6 +8,7 @@ export const INITIAL_MEDICINES: Medicine[] = [
     concentration: '50 mg',
     amount: '1 comprimido',
     times: ['08:00'],
+    days: ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'],
     frequency: 'Todos los días',
     addedBy: 'Silvana',
     status: 'active'
@@ -19,6 +20,7 @@ export const INITIAL_MEDICINES: Medicine[] = [
     concentration: '500 mg',
     amount: '1 comprimido',
     times: ['14:00', '20:00'],
+    days: ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'],
     frequency: 'Todos los días',
     addedBy: 'Silvana',
     status: 'active'

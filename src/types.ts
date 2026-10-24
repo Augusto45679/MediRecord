@@ -6,6 +6,8 @@ export type DoseStatus = 'pending' | 'taken' | 'omitted' | 'unconfirmed';
 
 export type FontSizePreference = 'normal' | 'large' | 'xlarge';
 
+export type DayOfWeek = 'lun' | 'mar' | 'mie' | 'jue' | 'vie' | 'sab' | 'dom';
+
 export type SpecialView =
   | 'none'
   | 'welcome'
@@ -37,7 +39,8 @@ export interface Medicine {
   concentration: string; // "500 mg"
   amount: string; // "1 comprimido"
   times: string[]; // ["14:00", "20:00"]
-  frequency: string; // "Todos los días"
+  days?: DayOfWeek[]; // ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
+  frequency: string; // "Todos los días", "Lunes a Viernes", etc.
   addedBy: string; // "Silvana"
   status: 'active' | 'paused';
 }
