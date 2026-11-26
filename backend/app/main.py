@@ -7,7 +7,7 @@ from sqlmodel import SQLModel
 from app import models  # noqa: F401  (registra tablas)
 from app.config import get_settings
 from app.db import engine
-from app.routers import auth, link
+from app.routers import auth, doses, link, medicines
 
 
 @asynccontextmanager
@@ -28,6 +28,8 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(link.router)
+app.include_router(medicines.router)
+app.include_router(doses.router)
 
 
 @app.get("/api/health")

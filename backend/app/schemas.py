@@ -1,3 +1,4 @@
+import re
 from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -68,3 +69,100 @@ class LinkOut(Camel):
 
 class InviteIn(Camel):
     code: str
+
+
+DayKey = Literal["lun", "mar", "mie", "jue", "vie", "sab", "dom"]
+OmissionReason = Literal["Me olvidé", "Me sentí mal", "Otro motivo"]
+_TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+
+
+def _check_times(v: list[str]) -> list[str]:
+    if not 1 <= len(v) <= 2:
+        raise ValueError("Elegí uno o dos horarios")
+    for t in v:
+        if not _TIME_RE.match(t):
+            raise ValueError(f"Horario inválido: {t}")
+    if len(set(v)) != len(v):
+        raise ValueError("Los horarios no pueden repetirse")
+    return sorted(v)
+
+
+def _check_days(v: list[str]) -> list[str]:
+    if not v:
+        raise ValueError("Elegí al menos un día")
+    return [d for d in ("lun", "mar", "mie", "jue", "vie", "sab", "dom") if d in set(v)]
+
+
+def _check_text(v: str) -> str:
+    v = v.strip()
+    if not v:
+        raise ValueError("No puede estar vacío")
+    return v
+
+
+class MedicineIn(Camel):
+    name: str = Field(max_length=80)
+    dose: str = Field(max_length=120)
+    concentration: str = Field(default="", max_length=60)
+    amount: str = Field(default="", max_length=60)
+    times: list[str]
+    days: list[DayKey]
+
+    _t = field_validator("times")(classmethod(lambda cls, v: _check_times(v)))
+    _d = field_validator("days")(classmethod(lambda cls, v: _check_days(v)))
+    _n = field_validator("name", "dose")(classmethod(lambda cls, v: _check_text(v)))
+
+
+class MedicineUpdate(Camel):
+    name: Optional[str] = Field(default=None, max_length=80)
+    dose: Optional[str] = Field(default=None, max_length=120)
+    concentration: Optional[str] = Field(default=None, max_length=60)
+    amount: Optional[str] = Field(default=None, max_length=60)
+    times: Optional[list[str]] = None
+    days: Optional[list[DayKey]] = None
+
+    _t = field_validator("times")(classmethod(lambda cls, v: v if v is None else _check_times(v)))
+    _d = field_validator("days")(classmethod(lambda cls, v: v if v is None else _check_days(v)))
+    _n = field_validator("name", "dose")(classmethod(lambda cls, v: v if v is None else _check_text(v)))
+
+
+class MedicineOut(Camel):
+    id: str
+    name: str
+    dose: str
+    concentration: str
+    amount: str
+    times: list[str]
+    days: list[str]
+    frequency: str
+    added_by: str
+    status: Literal["active", "paused"]
+
+
+class DoseOut(Camel):
+    id: str
+    medicine_id: str
+    medicine_name: str
+    time: str
+    dose_description: str
+    status: Literal["pending", "taken", "omitted", "unconfirmed"]
+    taken_at: Optional[str] = None
+    omitted_at: Optional[str] = None
+    omission_reason: Optional[str] = None
+    is_delayed: bool = False
+    postponed_until: Optional[str] = None
+    notice_attended: bool = False
+
+
+class DayOut(Camel):
+    date: str
+    is_today: bool
+    doses: list[DoseOut]
+
+
+class OmitIn(Camel):
+    reason: OmissionReason
+
+
+class PostponeIn(Camel):
+    minutes: int = Field(default=10, ge=1, le=120)

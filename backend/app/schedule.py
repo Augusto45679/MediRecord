@@ -135,3 +135,33 @@ def build_day_doses(
 
     result.sort(key=lambda v: (v.time, v.medicine_name))
     return result
+
+
+WEEKDAYS = DAY_KEYS[:5]
+_SHORT = {"lun": "Lun", "mar": "Mar", "mie": "Mié", "jue": "Jue", "vie": "Vie", "sab": "Sáb", "dom": "Dom"}
+_ONLY = {
+    "lun": "Solo lunes",
+    "mar": "Solo martes",
+    "mie": "Solo miércoles",
+    "jue": "Solo jueves",
+    "vie": "Solo viernes",
+    "sab": "Solo sábados",
+    "dom": "Solo domingos",
+}
+
+
+def format_days_frequency(days: list[str]) -> str:
+    """Mismo texto que formatDaysFrequency de src/utils/scheduleUtils.ts."""
+    if not days:
+        return "Ningún día"
+    unique = set(days)
+    if len(unique) == 7:
+        return "Todos los días"
+    if unique == set(WEEKDAYS):
+        return "Lunes a Viernes"
+    if unique == {"sab", "dom"}:
+        return "Fines de semana"
+    ordered = [d for d in DAY_KEYS if d in unique]
+    if len(ordered) == 1:
+        return _ONLY[ordered[0]]
+    return ", ".join(_SHORT[d] for d in ordered)
