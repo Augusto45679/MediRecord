@@ -3,6 +3,7 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
+from app.access import active_link
 from app.db import get_session
 from app.models import User
 from app.schemas import AuthOut, LoginIn, RegisterIn, SettingsIn, UserOut
@@ -55,9 +56,18 @@ def update_settings(
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    for key, value in data.model_dump(exclude_unset=True, exclude_none=True).items():
+    changes = data.model_dump(exclude_unset=True, exclude_none=True)
+    for key, value in changes.items():
         setattr(user, key, value)
     session.add(user)
+    if user.role == "caregiver" and "alert_wait_minutes" in changes:
+        # El umbral de aviso vive en la paciente: es lo que usa el cálculo de "sin confirmar".
+        link = active_link(user, session)
+        if link is not None and link.status == "accepted":
+            patient = session.get(User, link.patient_id)
+            if patient is not None:
+                patient.alert_wait_minutes = changes["alert_wait_minutes"]
+                session.add(patient)
     session.commit()
     session.refresh(user)
     return user

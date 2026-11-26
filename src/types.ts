@@ -64,7 +64,7 @@ export interface Medicine {
   times: string[]; // ["14:00", "20:00"]
   days?: DayOfWeek[]; // ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
   frequency: string; // "Todos los días", "Lunes a Viernes", etc.
-  addedBy: string; // "Silvana"
+  addedBy: string; // nombre de quien la cargó
   status: 'active' | 'paused';
 }
 

@@ -54,7 +54,7 @@ export const OmissionModal: React.FC<OmissionModalProps> = ({
         <div className="card-coral" style={{ padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontWeight: 700, fontSize: 15, marginBottom: 4 }}>
             <AlertCircle size={20} />
-            Silvana va a saber que hoy no la tomaste
+            Tu persona de apoyo va a saber que hoy no la tomaste
           </div>
           <div style={{ fontSize: 13, lineHeight: 1.4, opacity: 0.9 }}>
             Se enviará un aviso inmediato y explícito para que no se preocupe por falta de respuesta.

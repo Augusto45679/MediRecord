@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { nowHHMM } from '../utils/dateFormat';
 import { useMediRecord } from '../context/MediRecordContext';
 import { Wifi, Battery, Signal, Pill } from 'lucide-react';
 import { BottomNavBar } from './BottomNavBar';
@@ -15,6 +16,12 @@ import { SilvanaAjustesTab } from './silvana/SilvanaAjustesTab';
 export const PhoneMockup: React.FC = () => {
   const { state } = useMediRecord();
   const { currentRole, currentTab, fontSize, highContrast } = state;
+  const [clock, setClock] = useState(nowHHMM);
+
+  useEffect(() => {
+    const id = setInterval(() => setClock(nowHHMM()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   const fontClass = `font-${fontSize}`;
   const contrastClass = highContrast ? 'high-contrast' : '';
@@ -23,7 +30,7 @@ export const PhoneMockup: React.FC = () => {
     <div className={`phone-mockup-frame ${fontClass} ${contrastClass}`}>
       {/* Native-style mobile status bar */}
       <div className="phone-status-bar">
-        <span>14:00</span>
+        <span>{clock}</span>
         <div className="status-bar-icons">
           <Signal size={14} />
           <Wifi size={14} />
@@ -39,7 +46,7 @@ export const PhoneMockup: React.FC = () => {
         </div>
 
         <div className="role-tag">
-          {currentRole === 'roberto' ? 'Roberto' : 'Silvana'}
+          {state.user?.displayName}
         </div>
       </header>
 

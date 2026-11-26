@@ -16,7 +16,6 @@ import {
   CheckCircle2,
   Save,
   ChevronRight,
-  MessageSquare
 } from 'lucide-react';
 
 interface MedicineManagerProps {
@@ -34,6 +33,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
   } = useMediRecord();
 
   const isRoberto = userRole === 'roberto';
+  const patientName = isRoberto ? state.user?.displayName ?? '' : state.link.otherDisplayName ?? '';
 
   const [selectedMed, setSelectedMed] = useState<Medicine | null>(null);
   const [editingMed, setEditingMed] = useState<Medicine | null>(null);
@@ -50,7 +50,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
   // Add Wizard State (Steps 1 to 4 from I-02 to I-05)
   const [addStep, setAddStep] = useState(1);
   const [newMedName, setNewMedName] = useState('');
-  const [newMedDose, setNewMedDose] = useState('1 comprimido de 10 mg');
+  const [newMedDose, setNewMedDose] = useState('');
   const [newMedTime1, setNewMedTime1] = useState('09:00');
   const [newMedTime2, setNewMedTime2] = useState('');
   const [newMedDays, setNewMedDays] = useState<DayOfWeek[]>(ALL_DAYS);
@@ -98,7 +98,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
   const handleStartAdd = () => {
     setAddStep(1);
     setNewMedName('');
-    setNewMedDose('1 comprimido de 10 mg');
+    setNewMedDose('');
     setNewMedTime1('09:00');
     setNewMedTime2('');
     setNewMedDays([...ALL_DAYS]);
@@ -115,25 +115,15 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
 
     addMedicine({
       name: newMedName.trim(),
-      dose: newMedDose,
-      concentration: newMedDose.split('de ')[1] || '10 mg',
-      amount: newMedDose.split(' de')[0] || '1 comprimido',
+      dose: newMedDose.trim(),
+      concentration: newMedDose.split('de ')[1] || '',
+      amount: newMedDose.split(' de')[0] || '',
       times,
       days: newMedDays,
-      frequency,
-      addedBy: isRoberto ? 'Roberto' : 'Silvana',
-      status: 'active'
+      frequency
     });
 
     setShowAddModal(false);
-  };
-
-  const handleNotifySilvana = (medName: string) => {
-    showToast(
-      'Mensaje enviado a Silvana',
-      'info',
-      `Le avisamos a Silvana para revisar ${medName}.`
-    );
   };
 
   // Screen render
@@ -241,19 +231,6 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
             </div>
           </div>
 
-          {isRoberto && (
-            <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ fontSize: 14, color: 'var(--color-muted)', lineHeight: 1.4 }}>
-                Si sentís molestias, cambios de dosis o algo no está bien, avisale a Silvana para que revise las indicaciones con tu médico.
-              </div>
-              <button
-                className="btn-soft"
-                onClick={() => handleNotifySilvana(selectedMed.name)}
-              >
-                <MessageSquare size={16} /> Avisarle a Silvana
-              </button>
-            </div>
-          )}
         </div>
       ) : (
         <>
@@ -261,7 +238,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h1 className="screen-title" style={{ fontSize: 'var(--large-title, 26px)', marginBottom: 2 }}>
-                {isRoberto ? 'Tus medicinas' : 'Medicinas de Roberto'}
+                {isRoberto ? 'Tus medicinas' : `Medicinas de ${patientName}`}
               </h1>
               <div className="screen-subtitle">
                 {isRoberto
@@ -365,7 +342,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
 
           {/* Guidance footnote */}
           <div className="card-mint" style={{ fontSize: 13, color: 'var(--color-primary-dark)', lineHeight: 1.4 }}>
-            <strong>Importante:</strong> Solo Roberto puede confirmar sus tomas. La app conserva el historial aunque una medicina sea pausada o eliminada.
+            <strong>Importante:</strong> Solo {patientName || 'la persona que las toma'} puede confirmar sus tomas. La app conserva el historial aunque una medicina sea pausada o eliminada.
           </div>
         </>
       )}
@@ -468,6 +445,8 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 <button
                   className="btn-primary"
                   data-testid="wizard-step2-continue"
+                  disabled={!newMedDose.trim()}
+                  style={{ opacity: newMedDose.trim() ? 1 : 0.5 }}
                   onClick={() => setAddStep(3)}
                 >
                   Continuar
@@ -484,7 +463,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
                   {isRoberto
                     ? 'Elegí los días de la semana y los horarios para tus recordatorios.'
-                    : 'Elegí los días de la semana y los horarios para Roberto.'}
+                    : `Elegí los días de la semana y los horarios para ${patientName}.`}
                 </div>
 
                 {/* Days of week selector */}
@@ -608,7 +587,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
               ¿Pausar {showPauseConfirm.name}?
             </h2>
             <div style={{ fontSize: 14, color: 'var(--color-muted)', lineHeight: 1.45 }}>
-              Roberto dejará de recibir sus recordatorios de las {showPauseConfirm.times.join(' y ')}.
+              {isRoberto ? 'Vas a dejar' : `${patientName} va a dejar`} de recibir los recordatorios de las {showPauseConfirm.times.join(' y ')}.
               <br /><br />
               <strong>La medicina y el historial se conservan.</strong> Podés reactivarla cuando corresponda.
             </div>
@@ -686,7 +665,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
             <div style={{ fontSize: 14, color: 'var(--color-muted)' }}>
               {isRoberto
                 ? 'Ajustá tu dosis, días u horarios'
-                : 'Ajustá dosis, días u horarios para Roberto'}
+                : `Ajustá dosis, días u horarios para ${patientName}`}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

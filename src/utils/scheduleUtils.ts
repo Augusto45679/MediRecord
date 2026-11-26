@@ -95,12 +95,3 @@ export function formatScheduleSummary(days: DayOfWeek[] | undefined, times: stri
   }
   return `${freq} a las ${timesStr}`;
 }
-
-/**
- * Checks whether the schedule includes the prototype's active day:
- * In the MediRecord demo, today is "Jueves 15 de octubre", day key: 'jue'.
- */
-export function isScheduledForToday(days?: DayOfWeek[]): boolean {
-  if (!days || days.length === 0) return true;
-  return days.includes('jue');
-}

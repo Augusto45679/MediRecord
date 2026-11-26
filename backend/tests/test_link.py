@@ -70,3 +70,14 @@ def test_get_link_none(client):
         "otherDisplayName": None,
         "otherUsername": None,
     }
+
+
+def test_caregiver_alert_wait_applies_to_patient(client):
+    pt, p, ct = _pair(client)
+    client.patch("/api/me/settings", json={"alertWaitMinutes": 90}, headers=auth(ct))
+    client.post("/api/link/invite", json={"code": p["linkCode"]}, headers=auth(ct))
+    client.post("/api/link/accept", headers=auth(pt))
+    assert client.get("/api/me", headers=auth(pt)).json()["alertWaitMinutes"] == 90
+    client.patch("/api/me/settings", json={"alertWaitMinutes": 30}, headers=auth(ct))
+    assert client.get("/api/me", headers=auth(pt)).json()["alertWaitMinutes"] == 30
+    assert client.get("/api/me", headers=auth(ct)).json()["alertWaitMinutes"] == 30

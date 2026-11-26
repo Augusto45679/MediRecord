@@ -52,6 +52,11 @@ def _answer(user: User, session: Session, new_status: str) -> LinkOut:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No tenés invitaciones pendientes")
     link.status = new_status
     session.add(link)
+    if new_status == "accepted":
+        caregiver = session.get(User, link.caregiver_id)
+        if caregiver is not None:  # la preferencia de aviso elegida por el familiar pasa a la paciente
+            user.alert_wait_minutes = caregiver.alert_wait_minutes
+            session.add(user)
     session.commit()
     session.refresh(link)
     return _out(user, link, session)
