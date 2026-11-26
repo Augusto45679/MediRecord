@@ -1,15 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type {
-  MediRecordState,
-  UserRole,
-  MainTab,
+  ApiUser,
+  DayDoses,
+  DoseRecord,
   FontSizePreference,
-  SpecialView,
+  LinkInfo,
+  MainTab,
+  MediRecordState,
   Medicine,
-  DayOfWeek
+  OmissionReason,
+  SpecialView
 } from '../types';
-import { DEFAULT_STATE } from '../data/initialData';
-import { formatDaysFrequency, isScheduledForToday } from '../utils/scheduleUtils';
+import { api, ApiError, getToken, setOnUnauthorized, setToken } from '../api/client';
+import type { RegisterData } from '../components/common/AuthScreen';
 
 interface ToastMessage {
   id: string;
@@ -18,592 +21,312 @@ interface ToastMessage {
   subtext?: string;
 }
 
+type MedicineInput = Omit<Medicine, 'id' | 'frequency' | 'addedBy' | 'status'> &
+  Partial<Pick<Medicine, 'frequency' | 'addedBy' | 'status'>>;
+
 interface MediRecordContextType {
   state: MediRecordState;
+  isAuthenticated: boolean;
   toasts: ToastMessage[];
   dismissToast: (id: string) => void;
   showToast: (text: string, type?: ToastMessage['type'], subtext?: string) => void;
-  setRole: (role: UserRole) => void;
   setTab: (tab: MainTab) => void;
-  setFontSize: (size: FontSizePreference) => void;
-  setHighContrast: (enabled: boolean) => void;
-  setSoundEnabled: (enabled: boolean) => void;
-  setVibrationEnabled: (enabled: boolean) => void;
-  setVoiceConfirmationEnabled: (enabled: boolean) => void;
-  setSilvanaAlertWait: (minutes: number) => void;
-  markDoseTaken: (doseId: string, customTime?: string) => void;
-  markDoseOmitted: (doseId: string, reason: 'Me olvidé' | 'Me sentí mal' | 'Otro motivo') => void;
-  markDoseUnconfirmed: (doseId: string) => void;
-  postponeDose: (doseId: string, minutes?: number) => void;
-  undoDoseStatus: (doseId: string) => void;
-  attendNoticeSilvana: () => void;
-  addMedicine: (med: Omit<Medicine, 'id'>) => void;
-  updateMedicine: (id: string, updated: Partial<Omit<Medicine, 'id'>>) => void;
-  togglePauseMedicine: (id: string) => void;
-  deleteMedicine: (id: string) => void;
-  toggleFamilyLink: (linked?: boolean) => void;
-  setPendingInvitation: (pending: boolean) => void;
-  acceptInvitation: () => void;
-  rejectInvitation: () => void;
   setSpecialView: (view: SpecialView) => void;
-  resetDemo: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  logout: () => void;
+  refresh: () => Promise<void>;
+  setFontSize: (size: FontSizePreference) => Promise<boolean>;
+  setHighContrast: (enabled: boolean) => Promise<boolean>;
+  setSoundEnabled: (enabled: boolean) => Promise<boolean>;
+  setVibrationEnabled: (enabled: boolean) => Promise<boolean>;
+  setVoiceConfirmationEnabled: (enabled: boolean) => Promise<boolean>;
+  setSilvanaAlertWait: (minutes: number) => Promise<boolean>;
+  markDoseTaken: (doseId: string) => Promise<boolean>;
+  markDoseOmitted: (doseId: string, reason: OmissionReason) => Promise<boolean>;
+  postponeDose: (doseId: string, minutes?: number) => Promise<boolean>;
+  undoDoseStatus: (doseId: string) => Promise<boolean>;
+  attendNotice: (doseId: string) => Promise<boolean>;
+  addMedicine: (med: MedicineInput) => Promise<boolean>;
+  updateMedicine: (id: string, updated: Partial<MedicineInput>) => Promise<boolean>;
+  togglePauseMedicine: (id: string) => Promise<boolean>;
+  deleteMedicine: (id: string) => Promise<boolean>;
+  inviteByCode: (code: string) => Promise<boolean>;
+  acceptInvitation: () => Promise<boolean>;
+  rejectInvitation: () => Promise<boolean>;
+  unlink: () => Promise<boolean>;
 }
 
-const STORAGE_KEY = 'medirecord_demo_state_v1';
+const NO_LINK: LinkInfo = { status: 'none', otherDisplayName: null, otherUsername: null };
+const REFRESH_MS = 60_000;
+
+function localIsoDate(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const EMPTY_STATE: MediRecordState = {
+  user: null,
+  link: NO_LINK,
+  loading: false,
+  currentRole: 'roberto',
+  currentTab: 'hoy',
+  specialView: 'none',
+  fontSize: 'large',
+  highContrast: false,
+  soundEnabled: true,
+  vibrationEnabled: true,
+  voiceConfirmationEnabled: true,
+  silvanaAlertWaitMinutes: 60,
+  medicines: [],
+  todayDate: localIsoDate(),
+  todayDoses: [],
+  history: []
+};
+
+function fromUser(user: ApiUser): Partial<MediRecordState> {
+  return {
+    user,
+    currentRole: user.role === 'patient' ? 'roberto' : 'silvana',
+    fontSize: user.fontSize,
+    highContrast: user.highContrast,
+    soundEnabled: user.soundEnabled,
+    vibrationEnabled: user.vibrationEnabled,
+    voiceConfirmationEnabled: user.voiceConfirmationEnabled,
+    silvanaAlertWaitMinutes: user.alertWaitMinutes
+  };
+}
+
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : 'Algo salió mal. Intentá de nuevo.';
+}
 
 const MediRecordContext = createContext<MediRecordContextType | undefined>(undefined);
 
 export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<MediRecordState>(() => {
-    // Check URL parameters first for direct presentation links
-    let initial = DEFAULT_STATE;
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        initial = JSON.parse(saved);
-      }
-    } catch {
-      // Fallback
-    }
-
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlRole = params.get('role') as UserRole | null;
-      const urlTab = params.get('tab') as MainTab | null;
-      const urlStatus = params.get('status');
-
-      if (urlRole === 'roberto' || urlRole === 'silvana') {
-        initial = { ...initial, currentRole: urlRole };
-      }
-      if (urlTab === 'hoy' || urlTab === 'medicinas' || urlTab === 'historial' || urlTab === 'ajustes') {
-        initial = { ...initial, currentTab: urlTab };
-      }
-      if (urlStatus === 'taken' || urlStatus === 'omitted' || urlStatus === 'unconfirmed') {
-        const updatedDoses = initial.todayDoses.map(d => {
-          if (d.time === '14:00') {
-            return {
-              ...d,
-              status: urlStatus as any,
-              takenAt: urlStatus === 'taken' ? '14:02' : undefined,
-              omittedAt: urlStatus === 'omitted' ? '14:05' : undefined,
-              omissionReason: urlStatus === 'omitted' ? ('Me sentí mal' as const) : undefined
-            };
-          }
-          return d;
-        });
-        initial = { ...initial, todayDoses: updatedDoses };
-      }
-    }
-
-    return initial;
-  });
-
+  const [token, setTokenState] = useState<string | null>(() => getToken());
+  const [state, setState] = useState<MediRecordState>(() => ({ ...EMPTY_STATE, loading: Boolean(getToken()) }));
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  // Cada refresh/login/logout incrementa la generación; solo se aplica el resultado más reciente.
+  const generation = useRef(0);
 
-  // Save state changes to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // Storage error ignore
-    }
-  }, [state]);
-
-  const showToast = (text: string, type: ToastMessage['type'] = 'info', subtext?: string) => {
+  const showToast = useCallback((text: string, type: ToastMessage['type'] = 'info', subtext?: string) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts(prev => [...prev, { id, text, type, subtext }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4500);
-  };
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4500);
+  }, []);
 
-  const dismissToast = (id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  };
+  const dismissToast = (id: string) => setToasts(prev => prev.filter(t => t.id !== id));
 
-  const setRole = (role: UserRole) => {
-    setState(prev => ({ ...prev, currentRole: role, specialView: 'none' }));
-    showToast(
-      role === 'roberto' ? 'Modo Roberto (Paciente)' : 'Modo Silvana (Familiar)',
-      'info',
-      role === 'roberto' ? 'Visualizando experiencia de Roberto Gómez' : 'Visualizando acompañamiento de Silvana Gómez'
-    );
-  };
+  const logout = useCallback(() => {
+    generation.current++;
+    setToken(null);
+    setTokenState(null);
+    setState({ ...EMPTY_STATE });
+  }, []);
 
-  const setSpecialView = (view: SpecialView) => {
-    setState(prev => ({ ...prev, specialView: view }));
-  };
-
-  const setTab = (tab: MainTab) => {
-    setState(prev => ({ ...prev, currentTab: tab }));
-  };
-
-  const setFontSize = (size: FontSizePreference) => {
-    setState(prev => ({ ...prev, fontSize: size }));
-  };
-
-  const setHighContrast = (enabled: boolean) => {
-    setState(prev => ({ ...prev, highContrast: enabled }));
-  };
-
-  const setSoundEnabled = (enabled: boolean) => {
-    setState(prev => ({ ...prev, soundEnabled: enabled }));
-  };
-
-  const setVibrationEnabled = (enabled: boolean) => {
-    setState(prev => ({ ...prev, vibrationEnabled: enabled }));
-  };
-
-  const setVoiceConfirmationEnabled = (enabled: boolean) => {
-    setState(prev => ({ ...prev, voiceConfirmationEnabled: enabled }));
-  };
-
-  const setSilvanaAlertWait = (minutes: number) => {
-    setState(prev => ({ ...prev, silvanaAlertWaitMinutes: minutes }));
-    showToast('Preferencia actualizada', 'success', `Aviso configurado a los ${minutes} minutos.`);
-  };
-
-  const markDoseTaken = (doseId: string, customTime?: string) => {
-    const timeNow = customTime || '14:02';
-    setState(prev => {
-      const updatedDoses = prev.todayDoses.map(d => {
-        if (d.id === doseId) {
-          return {
-            ...d,
-            status: 'taken' as const,
-            takenAt: timeNow,
-            postponedUntil: undefined,
-            isDelayed: timeNow > '15:00'
-          };
-        }
-        return d;
-      });
-
-      const dose = prev.todayDoses.find(d => d.id === doseId);
-      const doseName = dose ? dose.medicineName : 'Medicina';
-
-      // Update history
-      const todayHistory = prev.history.find(h => h.isToday);
-      const otherHistory = prev.history.filter(h => !h.isToday);
-
-      const newRecord = {
-        id: 'hist-' + doseId,
-        medicineName: doseName,
-        doseDescription: dose ? dose.doseDescription : '1 comprimido',
-        time: dose ? dose.time : '14:00',
-        status: 'taken' as const,
-        note: `Registrada a las ${timeNow}`,
-        registeredAt: timeNow
-      };
-
-      const updatedTodayRecords = todayHistory
-        ? [
-            ...todayHistory.records.filter(r => r.id !== 'hist-' + doseId),
-            newRecord
-          ].sort((a, b) => a.time.localeCompare(b.time))
-        : [newRecord];
-
-      return {
-        ...prev,
-        todayDoses: updatedDoses,
-        noticeAttendedBySilvana: false,
-        history: [
-          {
-            dateString: '2026-10-15',
-            displayDate: 'Jueves 15 de octubre',
-            isToday: true,
-            records: updatedTodayRecords
-          },
-          ...otherHistory
-        ]
-      };
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      generation.current++;
+      setTokenState(null);
+      setState({ ...EMPTY_STATE });
     });
+  }, []);
 
-    showToast('Toma registrada', 'success', `Registrada a las ${timeNow}. Silvana verá el aviso resuelto.`);
-  };
+  const doRefresh = useCallback(async () => {
+    const gen = ++generation.current;
+    const [user, link] = await Promise.all([api<ApiUser>('/api/me'), api<LinkInfo>('/api/link')]);
+    const canSeePatient = user.role === 'patient' || link.status === 'accepted';
+    let medicines: Medicine[] = [];
+    let today: DayDoses = { date: localIsoDate(), isToday: true, doses: [] };
+    let history: DayDoses[] = [];
+    if (canSeePatient) {
+      [medicines, today, history] = await Promise.all([
+        api<Medicine[]>('/api/medicines'),
+        api<DayDoses>('/api/doses/today'),
+        api<DayDoses[]>('/api/history?days=7')
+      ]);
+    }
+    if (gen !== generation.current) return; // llegó tarde: hubo otro refresh, login o logout
+    setState(prev => ({
+      ...prev,
+      ...fromUser(user),
+      link,
+      loading: false,
+      medicines,
+      todayDate: today.date,
+      todayDoses: today.doses,
+      history
+    }));
+  }, []);
 
-  const markDoseOmitted = (doseId: string, reason: 'Me olvidé' | 'Me sentí mal' | 'Otro motivo') => {
-    const timeNow = '14:05';
-    setState(prev => {
-      const updatedDoses = prev.todayDoses.map(d => {
-        if (d.id === doseId) {
-          return {
-            ...d,
-            status: 'omitted' as const,
-            omittedAt: timeNow,
-            omissionReason: reason,
-            postponedUntil: undefined
-          };
-        }
-        return d;
-      });
-
-      const dose = prev.todayDoses.find(d => d.id === doseId);
-      const doseName = dose ? dose.medicineName : 'Medicina';
-
-      // Update history
-      const todayHistory = prev.history.find(h => h.isToday);
-      const otherHistory = prev.history.filter(h => !h.isToday);
-
-      const newRecord = {
-        id: 'hist-' + doseId,
-        medicineName: doseName,
-        doseDescription: dose ? dose.doseDescription : '1 comprimido',
-        time: dose ? dose.time : '14:00',
-        status: 'omitted' as const,
-        note: `No tomada: Lo indicó Roberto a las ${timeNow} (${reason})`,
-        registeredAt: timeNow
-      };
-
-      const updatedTodayRecords = todayHistory
-        ? [
-            ...todayHistory.records.filter(r => r.id !== 'hist-' + doseId),
-            newRecord
-          ].sort((a, b) => a.time.localeCompare(b.time))
-        : [newRecord];
-
-      return {
-        ...prev,
-        todayDoses: updatedDoses,
-        history: [
-          {
-            dateString: '2026-10-15',
-            displayDate: 'Jueves 15 de octubre',
-            isToday: true,
-            records: updatedTodayRecords
-          },
-          ...otherHistory
-        ]
-      };
-    });
-
-    showToast('Aviso de omisión enviado', 'alert', `Quedó como no tomada. Silvana recibe un aviso con el motivo "${reason}".`);
-  };
-
-  const markDoseUnconfirmed = (doseId: string) => {
-    setState(prev => {
-      const updatedDoses = prev.todayDoses.map(d => {
-        if (d.id === doseId) {
-          return {
-            ...d,
-            status: 'unconfirmed' as const,
-            takenAt: undefined,
-            omittedAt: undefined,
-            postponedUntil: undefined
-          };
-        }
-        return d;
-      });
-
-      return {
-        ...prev,
-        todayDoses: updatedDoses,
-        noticeAttendedBySilvana: false
-      };
-    });
-
-    showToast(
-      'Simulando 60 min sin confirmación',
-      'alert',
-      'La toma de las 14:00 no fue confirmada. Silvana recibe el aviso de omisión a las 15:00.'
-    );
-  };
-
-  const postponeDose = (doseId: string, minutes: number = 10) => {
-    const postponedTime = '14:10';
-    setState(prev => {
-      const updatedDoses = prev.todayDoses.map(d => {
-        if (d.id === doseId) {
-          return {
-            ...d,
-            postponedUntil: postponedTime
-          };
-        }
-        return d;
-      });
-      return { ...prev, todayDoses: updatedDoses };
-    });
-
-    showToast(
-      `Recordatorio postergado ${minutes} min`,
-      'info',
-      `Te volveremos a avisar a las ${postponedTime}. El plazo para avisar a Silvana no se reinicia.`
-    );
-  };
-
-  const undoDoseStatus = (doseId: string) => {
-    setState(prev => {
-      const updatedDoses = prev.todayDoses.map(d => {
-        if (d.id === doseId) {
-          return {
-            ...d,
-            status: 'pending' as const,
-            takenAt: undefined,
-            omittedAt: undefined,
-            omissionReason: undefined,
-            postponedUntil: undefined
-          };
-        }
-        return d;
-      });
-
-      const todayHistory = prev.history.find(h => h.isToday);
-      const otherHistory = prev.history.filter(h => !h.isToday);
-
-      const updatedTodayRecords = todayHistory
-        ? todayHistory.records.filter(r => r.id !== 'hist-' + doseId)
-        : [];
-
-      return {
-        ...prev,
-        todayDoses: updatedDoses,
-        history: [
-          {
-            dateString: '2026-10-15',
-            displayDate: 'Jueves 15 de octubre',
-            isToday: true,
-            records: updatedTodayRecords
-          },
-          ...otherHistory
-        ]
-      };
-    });
-
-    showToast('Registro deshecho', 'info', 'La toma volvió al estado pendiente.');
-  };
-
-  const attendNoticeSilvana = () => {
-    setState(prev => ({ ...prev, noticeAttendedBySilvana: true }));
-    showToast(
-      'Aviso atendido',
-      'success',
-      'Marcado como "Ya hablé con Roberto". La toma sigue sin confirmar: solo Roberto puede registrarla.'
-    );
-  };
-
-  const addMedicine = (medData: Omit<Medicine, 'id'>) => {
-    const id = 'med-' + Date.now();
-    const days = medData.days && medData.days.length > 0 ? medData.days : (['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'] as DayOfWeek[]);
-    const frequency = medData.frequency || formatDaysFrequency(days);
-
-    const newMed: Medicine = {
-      ...medData,
-      days,
-      frequency,
-      id
-    };
-
-    setState(prev => {
-      // In the demo, today is Thursday (Jueves 15 de octubre).
-      // Only schedule doses into today's timeline if this medicine is taken on Thursdays.
-      const shouldScheduleToday = isScheduledForToday(days);
-
-      const newDoses = shouldScheduleToday
-        ? newMed.times.map((t, idx) => ({
-            id: `dose-${id}-${idx}`,
-            medicineId: id,
-            medicineName: newMed.name,
-            time: t,
-            doseDescription: newMed.dose,
-            status: 'pending' as const
-          }))
-        : [];
-
-      return {
-        ...prev,
-        medicines: [...prev.medicines, newMed],
-        todayDoses: [...prev.todayDoses, ...newDoses].sort((a, b) => a.time.localeCompare(b.time))
-      };
-    });
-
-    const isToday = isScheduledForToday(days);
-    showToast(
-      'Medicina guardada',
-      'success',
-      isToday
-        ? `${medData.name} se agregó al plan y a las tomas de hoy.`
-        : `${medData.name} programada para: ${frequency}.`
-    );
-  };
-
-  const updateMedicine = (id: string, updated: Partial<Omit<Medicine, 'id'>>) => {
-    let medName = 'Medicina';
-    let freqText = 'Todos los días';
-
-    setState(prev => {
-      const existingMed = prev.medicines.find(m => m.id === id);
-      if (!existingMed) return prev;
-
-      medName = updated.name || existingMed.name;
-      const updatedDays = updated.days !== undefined ? updated.days : existingMed.days;
-      const updatedFrequency = updated.frequency || formatDaysFrequency(updatedDays);
-      freqText = updatedFrequency;
-
-      const newMed: Medicine = {
-        ...existingMed,
-        ...updated,
-        days: updatedDays,
-        frequency: updatedFrequency
-      };
-
-      const updatedMedicines = prev.medicines.map(m => (m.id === id ? newMed : m));
-
-      // Synchronize today doses
-      const scheduledToday = isScheduledForToday(updatedDays) && newMed.status === 'active';
-      let updatedTodayDoses: typeof prev.todayDoses;
-
-      if (!scheduledToday) {
-        // Not scheduled for today or paused: remove pending doses
-        updatedTodayDoses = prev.todayDoses.filter(d => d.medicineId !== id || d.status !== 'pending');
-      } else {
-        const currentMedDoses = prev.todayDoses.filter(d => d.medicineId === id);
-        const otherDoses = prev.todayDoses.filter(d => d.medicineId !== id);
-
-        const adjustedDoses = newMed.times.map((time, idx) => {
-          const existing = currentMedDoses.find(d => d.time === time) || currentMedDoses[idx];
-          if (existing) {
-            return {
-              ...existing,
-              time,
-              medicineName: newMed.name,
-              doseDescription: newMed.dose
-            };
-          }
-          return {
-            id: `dose-${id}-${idx}-${Date.now()}`,
-            medicineId: id,
-            medicineName: newMed.name,
-            time,
-            doseDescription: newMed.dose,
-            status: 'pending' as const
-          };
-        });
-
-        updatedTodayDoses = [...otherDoses, ...adjustedDoses].sort((a, b) => a.time.localeCompare(b.time));
+  const refresh = useCallback(async () => {
+    if (!getToken()) return;
+    const gen = generation.current + 1;
+    try {
+      await doRefresh();
+    } catch (err) {
+      if (gen !== generation.current) return;
+      setState(prev => ({ ...prev, loading: false }));
+      if (!(err instanceof ApiError && err.status === 401)) {
+        showToast('No pudimos actualizar', 'alert', errorText(err));
       }
+    }
+  }, [doRefresh, showToast]);
 
-      return {
-        ...prev,
-        medicines: updatedMedicines,
-        todayDoses: updatedTodayDoses
-      };
-    });
+  // Carga inicial + polling + al volver a la pestaña
+  useEffect(() => {
+    if (!token) return;
+    refresh();
+    const interval = setInterval(refresh, REFRESH_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [token, refresh]);
 
-    showToast('Cambios guardados', 'success', `${medName} fue actualizada (${freqText}).`);
-  };
-
-  const togglePauseMedicine = (id: string) => {
-    setState(prev => {
-      const med = prev.medicines.find(m => m.id === id);
-      const nextStatus = med?.status === 'active' ? 'paused' : 'active';
-      const updated = prev.medicines.map(m => {
-        if (m.id === id) {
-          return { ...m, status: nextStatus as 'active' | 'paused' };
+  /** Ejecuta una mutación, refresca y muestra el toast de éxito (o el error). Devuelve si salió bien. */
+  const run = useCallback(
+    async (fn: () => Promise<unknown>, success?: [string, ToastMessage['type'], string?]): Promise<boolean> => {
+      try {
+        await fn();
+      } catch (err) {
+        if (!(err instanceof ApiError && err.status === 401)) {
+          showToast('No se pudo guardar', 'alert', errorText(err));
         }
-        return m;
-      });
-
-      return {
-        ...prev,
-        medicines: updated
-      };
-    });
-  };
-
-  const deleteMedicine = (id: string) => {
-    setState(prev => {
-      const updated = prev.medicines.filter(m => m.id !== id);
-      const updatedDoses = prev.todayDoses.filter(d => d.medicineId !== id);
-
-      return {
-        ...prev,
-        medicines: updated,
-        todayDoses: updatedDoses
-      };
-    });
-
-    showToast('Medicina eliminada', 'info', 'Se quitó de las medicinas de Roberto. El historial se conserva.');
-  };
-
-  const toggleFamilyLink = (linked?: boolean) => {
-    setState(prev => ({
-      ...prev,
-      familyLinked: linked !== undefined ? linked : !prev.familyLinked,
-      pendingInvitation: false,
-      invitationRejected: false
-    }));
-  };
-
-  const setPendingInvitation = (pending: boolean) => {
-    setState(prev => ({
-      ...prev,
-      pendingInvitation: pending,
-      invitationRejected: false
-    }));
-  };
-
-  const acceptInvitation = () => {
-    setState(prev => ({
-      ...prev,
-      familyLinked: true,
-      pendingInvitation: false,
-      invitationRejected: false
-    }));
-    showToast('¡Vínculo aceptado!', 'success', 'Silvana Gómez ahora es tu persona de apoyo con tu consentimiento.');
-  };
-
-  const rejectInvitation = () => {
-    setState(prev => ({
-      ...prev,
-      familyLinked: false,
-      pendingInvitation: false,
-      invitationRejected: true
-    }));
-    showToast('Invitación rechazada', 'alert', 'Rechazaste la invitación de Silvana. Continuás sin persona de apoyo vinculada.');
-  };
-
-  const resetDemo = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setState({ ...DEFAULT_STATE, specialView: 'none' });
-    showToast('Demo restablecida', 'info', 'Se han restablecido los valores y estados iniciales.');
-  };
-
-  return (
-    <MediRecordContext.Provider
-      value={{
-        state,
-        toasts,
-        dismissToast,
-        showToast,
-        setRole,
-        setTab,
-        setFontSize,
-        setHighContrast,
-        setSoundEnabled,
-        setVibrationEnabled,
-        setVoiceConfirmationEnabled,
-        setSilvanaAlertWait,
-        markDoseTaken,
-        markDoseOmitted,
-        markDoseUnconfirmed,
-        postponeDose,
-        undoDoseStatus,
-        attendNoticeSilvana,
-        addMedicine,
-        updateMedicine,
-        togglePauseMedicine,
-        deleteMedicine,
-        toggleFamilyLink,
-        setPendingInvitation,
-        acceptInvitation,
-        rejectInvitation,
-        setSpecialView,
-        resetDemo
-      }}
-    >
-      {children}
-    </MediRecordContext.Provider>
+        return false;
+      }
+      if (success) showToast(success[0], success[1], success[2]);
+      await refresh();
+      return true;
+    },
+    [refresh, showToast]
   );
+
+  const startSession = (newToken: string, user: ApiUser) => {
+    generation.current++;
+    setToken(newToken);
+    setState({ ...EMPTY_STATE, ...fromUser(user), loading: true, todayDate: localIsoDate() });
+    setTokenState(newToken);
+  };
+
+  const login = async (username: string, password: string) => {
+    const res = await api<{ token: string; user: ApiUser }>('/api/auth/login', { method: 'POST', body: { username, password } });
+    startSession(res.token, res.user);
+  };
+
+  const register = async (data: RegisterData) => {
+    const res = await api<{ token: string; user: ApiUser }>('/api/auth/register', { method: 'POST', body: data });
+    startSession(res.token, res.user);
+    setState(prev => ({ ...prev, specialView: data.role === 'patient' ? 'onboarding-roberto' : 'onboarding-silvana' }));
+  };
+
+  const patchSettings = (body: Partial<ApiUser>, success?: [string, ToastMessage['type'], string?]) =>
+    run(() => api('/api/me/settings', { method: 'PATCH', body }), success);
+
+  const doseName = (doseId: string): DoseRecord | undefined => state.todayDoses.find(d => d.id === doseId);
+  const supportName = state.link.status === 'accepted' ? state.link.otherDisplayName : null;
+
+  const value: MediRecordContextType = {
+    state,
+    isAuthenticated: Boolean(token),
+    toasts,
+    dismissToast,
+    showToast,
+    setTab: tab => setState(prev => ({ ...prev, currentTab: tab })),
+    setSpecialView: view => setState(prev => ({ ...prev, specialView: view })),
+    login,
+    register,
+    logout,
+    refresh,
+    setFontSize: size => {
+      setState(prev => ({ ...prev, fontSize: size }));
+      return patchSettings({ fontSize: size });
+    },
+    setHighContrast: enabled => {
+      setState(prev => ({ ...prev, highContrast: enabled }));
+      return patchSettings({ highContrast: enabled });
+    },
+    setSoundEnabled: enabled => patchSettings({ soundEnabled: enabled }),
+    setVibrationEnabled: enabled => patchSettings({ vibrationEnabled: enabled }),
+    setVoiceConfirmationEnabled: enabled => patchSettings({ voiceConfirmationEnabled: enabled }),
+    setSilvanaAlertWait: minutes =>
+      patchSettings({ alertWaitMinutes: minutes }, ['Preferencia actualizada', 'success', `Aviso configurado a los ${minutes} minutos.`]),
+    markDoseTaken: doseId =>
+      run(() => api(`/api/doses/${doseId}/take`, { method: 'POST' }), [
+        'Toma registrada',
+        'success',
+        supportName ? `${doseName(doseId)?.medicineName ?? 'La toma'} quedó registrada. ${supportName} lo va a ver.` : undefined
+      ]),
+    markDoseOmitted: (doseId, reason) =>
+      run(() => api(`/api/doses/${doseId}/omit`, { method: 'POST', body: { reason } }), [
+        'Quedó como no tomada',
+        'alert',
+        supportName ? `${supportName} va a ver el motivo: "${reason}".` : `Motivo: "${reason}".`
+      ]),
+    postponeDose: (doseId, minutes = 10) =>
+      run(() => api(`/api/doses/${doseId}/postpone`, { method: 'POST', body: { minutes } }), [
+        `Recordatorio postergado ${minutes} min`,
+        'info',
+        'El plazo para avisar a tu persona de apoyo no se reinicia.'
+      ]),
+    undoDoseStatus: doseId =>
+      run(() => api(`/api/doses/${doseId}/undo`, { method: 'POST' }), ['Registro deshecho', 'info', 'La toma volvió a pendiente.']),
+    attendNotice: doseId =>
+      run(() => api(`/api/doses/${doseId}/attend`, { method: 'POST' }), [
+        'Aviso atendido',
+        'success',
+        'La toma sigue sin confirmar: solo la persona que la toma puede registrarla.'
+      ]),
+    addMedicine: med =>
+      run(
+        () =>
+          api('/api/medicines', {
+            method: 'POST',
+            body: {
+              name: med.name,
+              dose: med.dose,
+              concentration: med.concentration ?? '',
+              amount: med.amount ?? '',
+              times: med.times,
+              days: med.days
+            }
+          }),
+        ['Medicina guardada', 'success', `${med.name} se agregó al plan.`]
+      ),
+    updateMedicine: (id, updated) => {
+      const body: Record<string, unknown> = {};
+      for (const key of ['name', 'dose', 'concentration', 'amount', 'times', 'days'] as const) {
+        if (updated[key] !== undefined) body[key] = updated[key];
+      }
+      const name = updated.name ?? state.medicines.find(m => m.id === id)?.name ?? 'La medicina';
+      return run(() => api(`/api/medicines/${id}`, { method: 'PATCH', body }), ['Cambios guardados', 'success', `${name} fue actualizada.`]);
+    },
+    togglePauseMedicine: id => run(() => api(`/api/medicines/${id}/toggle-pause`, { method: 'POST' })),
+    deleteMedicine: id =>
+      run(() => api(`/api/medicines/${id}`, { method: 'DELETE' }), ['Medicina eliminada', 'info', 'El historial se conserva.']),
+    inviteByCode: code =>
+      run(() => api('/api/link/invite', { method: 'POST', body: { code } }), [
+        'Invitación enviada',
+        'success',
+        'Cuando la acepte, vas a ver sus tomas.'
+      ]),
+    acceptInvitation: () =>
+      run(() => api('/api/link/accept', { method: 'POST' }), [
+        '¡Vínculo aceptado!',
+        'success',
+        `${state.link.otherDisplayName ?? 'Tu persona de apoyo'} ahora puede acompañarte.`
+      ]),
+    rejectInvitation: () =>
+      run(() => api('/api/link/reject', { method: 'POST' }), ['Invitación rechazada', 'info', 'Seguís sin persona de apoyo vinculada.']),
+    unlink: () => run(() => api('/api/link', { method: 'DELETE' }), ['Vínculo eliminado', 'info'])
+  };
+
+  return <MediRecordContext.Provider value={value}>{children}</MediRecordContext.Provider>;
 };
 
 export const useMediRecord = () => {

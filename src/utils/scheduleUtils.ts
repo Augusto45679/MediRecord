@@ -96,11 +96,9 @@ export function formatScheduleSummary(days: DayOfWeek[] | undefined, times: stri
   return `${freq} a las ${timesStr}`;
 }
 
-/**
- * Checks whether the schedule includes the prototype's active day:
- * In the MediRecord demo, today is "Jueves 15 de octubre", day key: 'jue'.
- */
-export function isScheduledForToday(days?: DayOfWeek[]): boolean {
-  if (!days || days.length === 0) return true;
-  return days.includes('jue');
+/** "1 comprimido de 500 mg" → { amount: "1 comprimido", concentration: "500 mg" }. Solo corta en un " de " suelto. */
+export function splitDose(dose: string): { amount: string; concentration: string } {
+  const match = dose.trim().match(/^(.*?)\s+de\s+(.*)$/i);
+  if (!match) return { amount: dose.trim(), concentration: '' };
+  return { amount: match[1].trim(), concentration: match[2].trim() };
 }

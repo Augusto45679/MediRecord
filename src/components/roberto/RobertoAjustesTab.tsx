@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
 import { InvitationReceivedScreen } from './InvitationReceivedScreen';
 import { AccessibilitySettingsView } from '../common/AccessibilitySettingsView';
+import { formatLinkCode } from '../../utils/dateFormat';
 import {
   Users,
   Eye,
@@ -22,37 +23,22 @@ import {
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export const RobertoAjustesTab: React.FC = () => {
-  const {
-    state,
-    setSoundEnabled,
-    toggleFamilyLink,
-    setRole,
-    showToast
-  } = useMediRecord();
+  const { state, setSoundEnabled, unlink, logout, showToast } = useMediRecord();
+  const { link } = state;
+  const supportName = link.otherDisplayName ?? '';
 
   const [activeSubscreen, setActiveSubscreen] = useState<'main' | 'apoyo' | 'manera' | 'avisos' | 'invitacion'>('main');
-  const [inviteCode, setInviteCode] = useState('');
 
   const handleTestSound = () => {
     showToast(
       'Probando sonido de alarma',
       'sound',
-      'Sonido claro y pausado con locución: "Roberto, te toca Metformina".'
+      'Sonido claro y pausado que dice qué medicina te toca.'
     );
   };
 
-  // ── Subscreen: Mi persona de apoyo (E-09 / Journey E) ─────────────────────
+  // ── Subscreen: Mi persona de apoyo ────────────────────────────────────────
   if (activeSubscreen === 'apoyo') {
-    const handleLinkByCode = () => {
-      if (inviteCode.replace(/\s/g, '') === state.familyCode.replace(/\s/g, '')) {
-        toggleFamilyLink(true);
-        showToast('¡Vinculación exitosa!', 'success', 'Silvana Gómez ahora es tu persona de apoyo.');
-        setInviteCode('');
-      } else {
-        showToast('Código incorrecto', 'alert', 'Verificá el código con Silvana e intentá nuevamente.');
-      }
-    };
-
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
@@ -66,15 +52,14 @@ export const RobertoAjustesTab: React.FC = () => {
           <div className="screen-subtitle">Gestión del vínculo familiar y permisos</div>
         </div>
 
-        {state.familyLinked ? (
-          /* Estado L-02: Vinculado */
+        {link.status === 'accepted' ? (
           <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 44, height: 44, borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <UserCheck size={22} />
               </div>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)' }}>Silvana Gómez</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)' }}>{supportName}</div>
                 <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 600 }}>Vinculada con tu permiso</div>
               </div>
             </div>
@@ -88,54 +73,41 @@ export const RobertoAjustesTab: React.FC = () => {
             <button
               className="btn-danger-outline"
               onClick={() => {
-                toggleFamilyLink(false);
-                showToast('Permiso retirado', 'info', 'Silvana ya no tiene acceso a tus registros ni medicinas.');
+                if (window.confirm(`¿Seguro que querés desvincular a ${supportName}? Va a dejar de ver tus tomas.`)) unlink();
               }}
             >
-              <ShieldAlert size={16} /> Desvincular a Silvana
+              <ShieldAlert size={16} /> Desvincular a {supportName}
             </button>
           </div>
         ) : (
-          /* Estados no vinculados: L-06 (pendiente), L-07 (rechazado) o L-05 (sin vincular) */
           <>
-            {/* L-06: Invitación pendiente recibida */}
-            {state.pendingInvitation && (
+            {link.status === 'pending' && (
               <div className="card-amber" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <AlertCircle size={20} color="var(--alert-amber-text)" />
-                  <div style={{ fontSize: 16, fontWeight: 700 }}>
-                    Invitación recibida de Silvana
-                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>Invitación recibida de {link.otherDisplayName}</div>
                 </div>
-
                 <div style={{ fontSize: 13, lineHeight: 1.4 }}>
-                  Silvana Gómez te envió una invitación para ser tu persona de apoyo (Código: <strong>{state.familyCode}</strong>). Aún no diste tu respuesta.
+                  {link.otherDisplayName} quiere ser tu persona de apoyo. Todavía no respondiste.
                 </div>
-
-                <button
-                  className="btn-primary"
-                  onClick={() => setActiveSubscreen('invitacion')}
-                  style={{ backgroundColor: '#76500E' }}
-                >
+                <button className="btn-primary" onClick={() => setActiveSubscreen('invitacion')} style={{ backgroundColor: '#76500E' }}>
                   <MailCheck size={16} /> Ver y responder invitación
                 </button>
               </div>
             )}
 
-            {/* L-07: Invitación rechazada recientemente */}
-            {state.invitationRejected && (
+            {link.status === 'rejected' && (
               <div className="card-white" style={{ border: '1.5px solid #F8B4B4', background: '#FDF2F2', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#8A3930' }}>
                   <XCircle size={18} />
-                  <span style={{ fontSize: 15, fontWeight: 700 }}>Invitación rechazada</span>
+                  <span style={{ fontSize: 15, fontWeight: 700 }}>Sin vínculo activo</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#8A3930', lineHeight: 1.4 }}>
-                  Rechazaste la última invitación. No compartís datos con ninguna persona de apoyo. Si cambiás de opinión, podés ingresar un nuevo código.
+                  No compartís datos con ninguna persona de apoyo. Si cambiás de opinión, compartí tu código otra vez.
                 </div>
               </div>
             )}
 
-            {/* L-05: Estado base sin vincular */}
             <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: 'var(--border-subtle)', color: 'var(--color-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -147,37 +119,22 @@ export const RobertoAjustesTab: React.FC = () => {
                 </div>
               </div>
               <div style={{ fontSize: 14, color: 'var(--color-muted)', lineHeight: 1.4 }}>
-                Si un familiar o cuidador te envió un código de invitación, ingresalo acá para vincularte con su permiso.
+                Si querés que un familiar te acompañe, pasale este código. Cuando lo cargue, vas a poder aceptar o rechazar.
               </div>
             </div>
 
-            <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="card-white" style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <KeyRound size={18} color="var(--color-primary)" />
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                  Ingresar código de invitación
-                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-primary-dark)' }}>Tu código</div>
               </div>
-              <input
-                type="text"
-                placeholder="Ej. 482 716"
-                value={inviteCode}
-                onChange={e => setInviteCode(e.target.value)}
-                style={{
-                  width: '100%', padding: '14px 16px', borderRadius: '14px',
-                  border: '1.5px solid var(--border-mint)', fontSize: 24,
-                  fontFamily: 'inherit', textAlign: 'center', letterSpacing: 6,
-                  fontWeight: 700, outline: 'none', color: 'var(--color-primary-dark)'
-                }}
-              />
-              <button
-                className="btn-primary"
-                disabled={!inviteCode.trim()}
-                onClick={handleLinkByCode}
-                style={{ opacity: inviteCode.trim() ? 1 : 0.5 }}
-              >
-                <ShieldCheck size={18} /> Vincular con este código
-              </button>
+              <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: 6, color: 'var(--color-primary-dark)' }}>
+                {formatLinkCode(state.user?.linkCode)}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-muted)' }}>
+                <ShieldCheck size={14} color="var(--color-primary)" />
+                <span>Nada cambia sin tu consentimiento explícito</span>
+              </div>
             </div>
           </>
         )}
@@ -226,7 +183,7 @@ export const RobertoAjustesTab: React.FC = () => {
         <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-primary-dark)' }}>Recordar otra vez</div>
           <div style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.4 }}>
-            Si tocás «Posponer», la alarma volverá a sonar a los 10 minutos. Este plazo no reinicia el tiempo para avisar a Silvana.
+            Si tocás «Posponer», la alarma volverá a sonar a los 10 minutos. Este plazo no reinicia el tiempo para avisar a tu persona de apoyo.
           </div>
         </div>
 
@@ -263,11 +220,12 @@ export const RobertoAjustesTab: React.FC = () => {
       key: 'apoyo' as const,
       icon: <Users size={20} />,
       title: 'Mi persona de apoyo',
-      subtitle: state.familyLinked
-        ? 'Silvana Gómez (Vinculada)'
-        : state.pendingInvitation
-        ? '¡Invitación recibida pendiente!'
-        : 'Sin vincular'
+      subtitle:
+        link.status === 'accepted'
+          ? `${supportName} (Vinculada)`
+          : link.status === 'pending'
+            ? '¡Invitación recibida pendiente!'
+            : 'Sin vincular'
     },
     {
       key: 'manera' as const,
@@ -317,8 +275,11 @@ export const RobertoAjustesTab: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
-        <button className="btn-soft" onClick={() => setRole('silvana')}>
-          <LogOut size={16} /> Cambiar al modo de Silvana (Familiar)
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center' }}>
+          Entraste como <strong>@{state.user?.username}</strong>
+        </div>
+        <button className="btn-soft" onClick={logout}>
+          <LogOut size={16} /> Cerrar sesión
         </button>
       </div>
     </div>

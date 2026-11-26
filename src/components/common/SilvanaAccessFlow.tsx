@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
-import { LoginGoogleConfirmScreen } from './LoginGoogleConfirmScreen';
 import {
   ArrowRight,
   Check,
@@ -18,25 +17,15 @@ interface SilvanaAccessFlowProps {
 }
 
 export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete, initialStep = 1 }) => {
-  const { setSilvanaAlertWait, state, setSpecialView } = useMediRecord();
+  const { setSilvanaAlertWait, state } = useMediRecord();
+  const name = state.user?.displayName ?? '';
   const [step, setStep] = useState(initialStep);
 
-  // STEP 0: Log in 2 con Google para Silvana
-  if (step === 0) {
-    return (
-      <LoginGoogleConfirmScreen
-        role="silvana"
-        onConfirmAccount={() => setStep(1)}
-        onChooseOtherAccount={() => setSpecialView('login-1')}
-        onSwitchRole={() => setSpecialView('onboarding-roberto')}
-      />
-    );
-  }
 
   const waitOptions = [
     { minutes: 30, label: '30 minutos', desc: 'Aviso rápido ante tomas críticas' },
     { minutes: 60, label: '60 minutos (Recomendado)', desc: 'Tiempo óptimo sin generar falsas alarmas' },
-    { minutes: 90, label: '90 minutos', desc: 'Mayor autonomía para Roberto' }
+    { minutes: 90, label: '90 minutos', desc: 'Mayor margen de autonomía' }
   ];
 
   return (
@@ -66,16 +55,16 @@ export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete
             </div>
 
             <h1 style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.2, color: 'var(--color-primary-dark)', letterSpacing: -0.6 }}>
-              Hola, Silvana.<br />Gracias por acompañar a Roberto.
+              Hola{name ? `, ${name}` : ''}.<br />Gracias por acompañar.
             </h1>
 
             <p style={{ fontSize: 16, color: 'var(--color-muted)', lineHeight: 1.5 }}>
-              MediRecord te avisa <strong>solo cuando Roberto omite una toma</strong>. Nunca ante cada toma normal, para respetar su autonomía.
+              MediRecord te avisa <strong>solo cuando la persona que acompañás no confirma una toma</strong>. Nunca ante cada toma normal, para respetar su autonomía.
             </p>
 
             <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { icon: <ShieldCheck size={18} />, text: 'Roberto da su consentimiento explícito para que lo acompañes' },
+                { icon: <ShieldCheck size={18} />, text: 'La persona que acompañás da su consentimiento explícito con un código' },
                 { icon: <Bell size={18} />, text: 'Solo te avisamos si no confirma una toma en el tiempo acordado' },
                 { icon: <CheckCircle2 size={18} />, text: 'Podés cargar sus medicinas y horarios desde la app' }
               ].map((item, i) => (
@@ -108,7 +97,7 @@ export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete
             </h1>
 
             <p style={{ fontSize: 15, color: 'var(--color-muted)', lineHeight: 1.45 }}>
-              Si Roberto no confirma una toma, esperamos este tiempo antes de avisarte. Podés cambiarlo después.
+              Si no confirma una toma, esperamos este tiempo antes de avisarte. Podés cambiarlo después.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -166,11 +155,11 @@ export const SilvanaAccessFlow: React.FC<SilvanaAccessFlowProps> = ({ onComplete
             </div>
 
             <p style={{ fontSize: 15, color: 'var(--color-muted)', lineHeight: 1.45 }}>
-              Podés cargar las medicinas de Roberto desde la pestaña «Medicinas». Cualquier cambio queda registrado.
+              Pedile su código de 6 dígitos y cargalo en Ajustes › Vínculo. Cuando acepte, vas a poder ver y cargar sus medicinas.
             </p>
 
             <button className="btn-primary" onClick={onComplete}>
-              Ver resumen de Roberto <ArrowRight size={18} />
+              Empezar <ArrowRight size={18} />
             </button>
           </div>
         )}

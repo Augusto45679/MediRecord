@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
 import type { FontSizePreference } from '../../types';
-import { LoginGoogleConfirmScreen } from './LoginGoogleConfirmScreen';
 import {
   ArrowRight,
   Check,
@@ -18,20 +17,10 @@ interface RobertoAccessFlowProps {
 }
 
 export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete, initialStep = 1 }) => {
-  const { setFontSize, state, setSpecialView } = useMediRecord();
+  const { setFontSize, state } = useMediRecord();
+  const name = state.user?.displayName ?? '';
   const [step, setStep] = useState(initialStep);
 
-  // STEP 0: Log in 2 con Google para Roberto
-  if (step === 0) {
-    return (
-      <LoginGoogleConfirmScreen
-        role="roberto"
-        onConfirmAccount={() => setStep(1)}
-        onChooseOtherAccount={() => setSpecialView('login-1')}
-        onSwitchRole={() => setSpecialView('onboarding-silvana')}
-      />
-    );
-  }
 
   const fontSizes: { id: FontSizePreference; label: string; preview: string }[] = [
     { id: 'normal', label: 'Normal', preview: 'Aa' },
@@ -73,7 +62,7 @@ export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete
             </div>
 
             <h1 style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.2, color: 'var(--color-primary-dark)', letterSpacing: -0.6 }}>
-              Hola, Roberto.<br />Bienvenido.
+              Hola{name ? `, ${name}` : ''}.<br />Te damos la bienvenida.
             </h1>
 
             <p style={{ fontSize: 16, color: 'var(--color-muted)', lineHeight: 1.5 }}>
@@ -84,7 +73,7 @@ export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete
               {[
                 { icon: <Bell size={18} />, text: 'Te avisamos a la hora exacta con una alarma clara' },
                 { icon: <CheckCircle2 size={18} />, text: 'Confirmás fácilmente con un toque en pantalla' },
-                { icon: <User size={18} />, text: 'Tu hija Silvana solo recibe aviso si olvidás una toma' }
+                { icon: <User size={18} />, text: 'Tu persona de apoyo solo recibe aviso si no confirmás una toma' }
               ].map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ color: 'var(--color-primary)', flexShrink: 0 }}>{item.icon}</div>
@@ -169,7 +158,7 @@ export const RobertoAccessFlow: React.FC<RobertoAccessFlowProps> = ({ onComplete
             </div>
 
             <h1 style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.2, color: 'var(--color-primary-dark)', letterSpacing: -0.6 }}>
-              ¡Todo listo, Roberto!
+              ¡Todo listo{name ? `, ${name}` : ''}!
             </h1>
 
             <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
