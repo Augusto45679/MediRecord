@@ -128,3 +128,7 @@ Empezó como prototipo para una materia de Interacción Humano-Computadora, a pa
 proto-personas: Roberto (72, toma varias medicinas) y Silvana (44, su hija). Los nombres de las
 carpetas `roberto/` y `silvana/` vienen de ahí. Los entregables de diseño (wireflow, mapa del
 sitio, métricas de usabilidad) están en `png medirecord/`.
+
+## Licencia
+
+[MIT](LICENSE).
