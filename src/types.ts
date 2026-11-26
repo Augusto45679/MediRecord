@@ -8,14 +8,31 @@ export type FontSizePreference = 'normal' | 'large' | 'xlarge';
 
 export type DayOfWeek = 'lun' | 'mar' | 'mie' | 'jue' | 'vie' | 'sab' | 'dom';
 
-export type SpecialView =
-  | 'none'
-  | 'welcome'
-  | 'onboarding-roberto'
-  | 'onboarding-silvana'
-  | 'login-1'
-  | 'login-2-roberto'
-  | 'login-2-silvana';
+export type SpecialView = 'none' | 'onboarding-roberto' | 'onboarding-silvana';
+
+export type ApiRole = 'patient' | 'caregiver';
+
+export type OmissionReason = 'Me olvidé' | 'Me sentí mal' | 'Otro motivo';
+
+export interface ApiUser {
+  id: number;
+  username: string;
+  displayName: string;
+  role: ApiRole;
+  linkCode: string | null;
+  fontSize: FontSizePreference;
+  highContrast: boolean;
+  soundEnabled: boolean;
+  vibrationEnabled: boolean;
+  voiceConfirmationEnabled: boolean;
+  alertWaitMinutes: number;
+}
+
+export interface LinkInfo {
+  status: 'none' | 'pending' | 'accepted' | 'rejected';
+  otherDisplayName: string | null;
+  otherUsername: string | null;
+}
 
 export interface DoseRecord {
   id: string;
@@ -24,12 +41,18 @@ export interface DoseRecord {
   time: string; // e.g. "08:00", "14:00", "20:00"
   doseDescription: string; // e.g. "50 mg · 1 comprimido", "500 mg · 1 comprimido"
   status: DoseStatus;
-  takenAt?: string; // e.g. "08:05", "14:02"
-  omittedAt?: string; // e.g. "14:05"
-  omissionReason?: 'Me olvidé' | 'Me sentí mal' | 'Otro motivo';
-  isDelayed?: boolean; // confirmed late, e.g. 15:20
-  delayedAt?: string;
-  postponedUntil?: string; // e.g. "14:10"
+  takenAt?: string | null; // hora local "HH:MM"
+  omittedAt?: string | null;
+  omissionReason?: OmissionReason | null;
+  isDelayed?: boolean;
+  postponedUntil?: string | null;
+  noticeAttended?: boolean; // la persona de apoyo marcó "ya hablé"
+}
+
+export interface DayDoses {
+  date: string; // "YYYY-MM-DD"
+  isToday: boolean;
+  doses: DoseRecord[];
 }
 
 export interface Medicine {
@@ -45,23 +68,11 @@ export interface Medicine {
   status: 'active' | 'paused';
 }
 
-export interface DayHistory {
-  dateString: string; // e.g. "2026-10-15"
-  displayDate: string; // e.g. "Jueves 15 de octubre"
-  isToday: boolean;
-  records: {
-    id: string;
-    medicineName: string;
-    doseDescription: string;
-    time: string;
-    status: DoseStatus;
-    note: string;
-    registeredAt?: string;
-  }[];
-}
-
 export interface MediRecordState {
-  currentRole: UserRole;
+  user: ApiUser | null;
+  link: LinkInfo;
+  loading: boolean;
+  currentRole: UserRole; // vista: 'roberto' = paciente, 'silvana' = persona de apoyo
   currentTab: MainTab;
   specialView: SpecialView;
   fontSize: FontSizePreference;
@@ -70,12 +81,8 @@ export interface MediRecordState {
   vibrationEnabled: boolean;
   voiceConfirmationEnabled: boolean;
   silvanaAlertWaitMinutes: number; // 30, 60, 90
-  noticeAttendedBySilvana: boolean; // "Ya hablé con Roberto"
   medicines: Medicine[];
+  todayDate: string; // "YYYY-MM-DD" según la zona de la paciente
   todayDoses: DoseRecord[];
-  history: DayHistory[];
-  familyLinked: boolean;
-  familyCode: string;
-  pendingInvitation: boolean;
-  invitationRejected: boolean;
+  history: DayDoses[];
 }
