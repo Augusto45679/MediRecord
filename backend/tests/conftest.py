@@ -1,6 +1,6 @@
 import os
 
-os.environ["DATABASE_URL"] = "sqlite://"
+os.environ["DATABASE_URL"] = os.environ.get("TEST_DATABASE_URL", "sqlite://")
 os.environ.setdefault("JWT_SECRET", "test-secret-test-secret-test-secret")
 
 from datetime import UTC, datetime
