@@ -193,26 +193,27 @@ body {
     background-color: var(--desktop-bg);
   }
 
-  .presentation-layout {
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding: 24px 16px 60px 16px;
-    background: radial-gradient(circle at 50% 20%, #263631 0%, #151D1A 100%);
-    align-items: center;
-    justify-content: flex-start;
+  body {
+    background-color: #E6EDEB;
   }
 
-  .phone-mockup-frame {
-    max-width: 440px; /* iPhone 16 Pro Max viewport reference */
-    height: 932px;
-    min-height: auto;
-    max-height: calc(100vh - 100px);
-    max-height: calc(100dvh - 100px);
-    border-radius: 44px;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45), 0 0 0 10px #2D3934, 0 0 0 12px rgba(255, 255, 255, 0.1);
-    flex: initial;
-    flex-shrink: 0;
+  .presentation-layout {
+    min-height: 100dvh;
+    background-color: #E6EDEB;
+    align-items: center;
   }
+
+  /* Columna centrada a pantalla completa: sin marco de teléfono */
+  .phone-mockup-frame {
+    max-width: 640px;
+    height: 100dvh;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 8px 40px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* La barra de estado falsa (hora/wifi/batería) duplica la del sistema */
+.phone-status-bar {
+  display: none !important;
 }
 
 /* Status Bar */

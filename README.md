@@ -361,10 +361,11 @@ cd backend && uv run pytest   # API
 
 ### ☁️ Despliegue
 
-1. **API en Railway**: seguí [`backend/README.md`](backend/README.md#deploy-en-railway) (Root Directory `backend`, Postgres, `JWT_SECRET`, `CORS_ORIGINS`). Anotá el dominio, por ejemplo `https://medirecord-api.up.railway.app`.
-2. **Frontend en Vercel**: importá el repo (root del proyecto, el `vercel.json` ya está). En *Settings → Environment Variables* agregá `VITE_API_URL=https://<dominio-de-railway>` y hacé deploy.
-3. **CORS**: en Railway, `CORS_ORIGINS` tiene que incluir la URL final de Vercel (sin `/` al final). Si cambió, redeploy de la API.
-4. **Primer uso**: desde el celular, creá la cuenta de la persona que toma las medicinas («Voy a tomar mis medicinas»). Si alguien la acompaña, crea su cuenta con «Acompaño a alguien» e ingresa el código de 6 dígitos que aparece en *Ajustes › Mi persona de apoyo*. La paciente acepta desde la pestaña Hoy.
+1. **Base de datos en Neon** (gratis): creá un proyecto en [neon.tech](https://neon.tech) y copiá la *connection string* (`postgresql://...`).
+2. **API en Render** (gratis): *New → Blueprint* y elegí este repo; Render lee `render.yaml`. Completá `DATABASE_URL` (la de Neon) y `CORS_ORIGINS`; `JWT_SECRET` se genera solo. Anotá el dominio, por ejemplo `https://medirecord-api.onrender.com`. El plan gratis se duerme tras 15 min sin uso: el primer pedido tarda ~1 min.
+3. **Frontend en Vercel**: importá el repo (root del proyecto, el `vercel.json` ya está). En *Settings → Environment Variables* agregá `VITE_API_URL=https://<dominio-de-render>` y hacé deploy.
+4. **CORS**: en Render, `CORS_ORIGINS` tiene que incluir la URL final de Vercel (sin `/` al final). Si cambió, redeploy de la API.
+5. **Primer uso**: desde el celular, creá la cuenta de la persona que toma las medicinas («Voy a tomar mis medicinas»). Si alguien la acompaña, crea su cuenta con «Acompaño a alguien» e ingresa el código de 6 dígitos que aparece en *Ajustes › Mi persona de apoyo*. La paciente acepta desde la pestaña Hoy.
 
 > Las alarmas con la app cerrada (notificaciones push) todavía no están implementadas: la app muestra el estado al abrirla y se actualiza sola cada minuto mientras está abierta.
 
