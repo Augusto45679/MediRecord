@@ -103,7 +103,16 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
       stockPerDose: editPerDose
     };
 
-    updateMedicine(editingMed.id, changes);
+    // Los campos de horario solo se mandan si cambiaron: cualquiera de ellos reinicia el horario
+    // en el servidor (y el conteo de "cada X días").
+    const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+    const payload: Partial<typeof changes> = { ...changes };
+    if (same(times, editingMed.times)) delete payload.times;
+    if (same(editDays, editingMed.days ?? ALL_DAYS)) delete payload.days;
+    if (editInterval === (editingMed.intervalDays ?? 1)) delete payload.intervalDays;
+    if (endDate === (editingMed.endDate ?? null)) delete payload.endDate;
+
+    updateMedicine(editingMed.id, payload);
 
     if (selectedMed && selectedMed.id === editingMed.id) {
       setSelectedMed({ ...selectedMed, ...changes, frequency });

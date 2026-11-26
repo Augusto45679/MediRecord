@@ -13,7 +13,7 @@ import type {
 } from '../types';
 import { api, ApiError, getToken, setOnUnauthorized, setToken } from '../api/client';
 import type { RegisterData } from '../components/common/AuthScreen';
-import { clearAlarms, syncAlarms } from '../native/alarms';
+import { clearAlarms, listenAlarmActions, syncAlarms } from '../native/alarms';
 
 interface ToastMessage {
   id: string;
@@ -176,6 +176,9 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     }
   }, [doRefresh, showToast]);
+
+  // Botones "Ya la tomé" / "Posponer" de la notificación (app Android)
+  useEffect(() => listenAlarmActions(() => void refresh()), [refresh]);
 
   // Carga inicial + polling + al volver a la pestaña
   useEffect(() => {

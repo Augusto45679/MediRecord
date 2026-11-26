@@ -3,6 +3,7 @@ import { useMediRecord } from '../../context/MediRecordContext';
 import { InvitationReceivedScreen } from './InvitationReceivedScreen';
 import { AccessibilitySettingsView } from '../common/AccessibilitySettingsView';
 import { formatLinkCode } from '../../utils/dateFormat';
+import { OFFLINE } from '../../api/client';
 import {
   Users,
   Eye,
@@ -215,7 +216,7 @@ export const RobertoAjustesTab: React.FC = () => {
   }
 
   // ── Main Menu (H-03) — igualado a H-11 estilo SilvanaAjustesTab ───────────
-  const menuOptions = [
+  const allOptions = [
     {
       key: 'apoyo' as const,
       icon: <Users size={20} />,
@@ -240,6 +241,8 @@ export const RobertoAjustesTab: React.FC = () => {
       subtitle: state.soundEnabled ? 'Sonido claro activado' : 'Sonido desactivado'
     }
   ];
+  // Sin conexión no hay persona de apoyo: necesita el servidor.
+  const menuOptions = OFFLINE ? allOptions.filter(o => o.key !== 'apoyo') : allOptions;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -274,14 +277,20 @@ export const RobertoAjustesTab: React.FC = () => {
         ))}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
-        <div style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center' }}>
-          Entraste como <strong>@{state.user?.username}</strong>
+      {OFFLINE ? (
+        <div style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center', marginTop: 10 }}>
+          Tus medicinas y ajustes se guardan solo en este teléfono.
         </div>
-        <button className="btn-soft" onClick={logout}>
-          <LogOut size={16} /> Cerrar sesión
-        </button>
-      </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-muted)', textAlign: 'center' }}>
+            Entraste como <strong>@{state.user?.username}</strong>
+          </div>
+          <button className="btn-soft" onClick={logout}>
+            <LogOut size={16} /> Cerrar sesión
+          </button>
+        </div>
+      )}
     </div>
   );
 };

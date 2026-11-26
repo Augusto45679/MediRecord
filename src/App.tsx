@@ -4,6 +4,8 @@ import { PhoneMockup } from './components/PhoneMockup';
 import { RobertoAccessFlow } from './components/common/RobertoAccessFlow';
 import { SilvanaAccessFlow } from './components/common/SilvanaAccessFlow';
 import { AuthScreen } from './components/common/AuthScreen';
+import { OfflineWelcome } from './components/common/OfflineWelcome';
+import { OFFLINE } from './api/client';
 
 const MediRecordAppInner: React.FC = () => {
   const { state, isAuthenticated, login, register, logout, refresh, setSpecialView } = useMediRecord();
@@ -13,7 +15,11 @@ const MediRecordAppInner: React.FC = () => {
   if (!isAuthenticated) {
     content = (
       <div className="phone-mockup-frame">
-        <AuthScreen onLogin={login} onRegister={register} />
+        {OFFLINE ? (
+          <OfflineWelcome onStart={displayName => register({ displayName, username: 'yo', password: '', role: 'patient' })} />
+        ) : (
+          <AuthScreen onLogin={login} onRegister={register} />
+        )}
       </div>
     );
   } else if (state.loading && !state.user) {

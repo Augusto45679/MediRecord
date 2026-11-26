@@ -206,3 +206,13 @@ def test_upcoming_skips_taken_and_caregiver_forbidden(client, linked_pair, at_14
     up = client.get("/api/doses/upcoming?days=1", headers=auth(pt)).json()
     assert up == []
     assert client.get("/api/doses/upcoming", headers=auth(ct)).status_code == 403
+
+
+def test_omit_after_take_restores_stock(client, patient, at_1402):
+    body = {"name": "Metformina", "dose": "1 comprimido", "times": ["14:00"], "days": ALL, "stock": 5}
+    mid = client.post("/api/medicines", json=body, headers=auth(patient)).json()["id"]
+    did = _today(client, patient)["doses"][0]["id"]
+    client.post(f"/api/doses/{did}/take", headers=auth(patient))
+    client.post(f"/api/doses/{did}/omit", json={"reason": "Me olvidé"}, headers=auth(patient))
+    meds = client.get("/api/medicines", headers=auth(patient)).json()
+    assert next(m for m in meds if m["id"] == mid)["stock"] == 5

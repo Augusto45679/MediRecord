@@ -17,7 +17,10 @@ interface Upcoming {
 }
 
 const CHANNEL = 'tomas';
-const DAYS_AHEAD = 7;
+const ACTIONS = 'toma';
+// Android limita las alarmas pendientes (~500): 30 días alcanzan aunque no se abra la app en semanas.
+const DAYS_AHEAD = 30;
+const MAX_ALARMS = 400;
 let ready: Promise<boolean> | null = null;
 
 export const isNativeApp = () => Capacitor.isNativePlatform();
@@ -42,6 +45,17 @@ function setup(): Promise<boolean> {
       visibility: 1,
       vibration: true,
     });
+    await LocalNotifications.registerActionTypes({
+      types: [
+        {
+          id: ACTIONS,
+          actions: [
+            { id: 'take', title: 'Ya la tomé' },
+            { id: 'postpone', title: 'Posponer 10 min' },
+          ],
+        },
+      ],
+    });
     return true;
   })().catch(() => {
     ready = null;
@@ -57,19 +71,26 @@ export async function clearAlarms(): Promise<void> {
 }
 
 let syncing: Promise<void> | null = null;
+let rerun = false;
 
 export function syncAlarms(): Promise<void> {
   if (!isNativeApp()) return Promise.resolve();
-  syncing ??= (async () => {
+  if (syncing) {
+    // Hay una sincronización en curso con datos quizá viejos (p. ej. antes de marcar una toma).
+    rerun = true;
+    return syncing;
+  }
+  syncing = (async () => {
     try {
       if (!(await setup())) return;
       const upcoming = await api<Upcoming[]>(`/api/doses/upcoming?days=${DAYS_AHEAD}`);
       await clearAlarms();
       if (upcoming.length === 0) return;
       await LocalNotifications.schedule({
-        notifications: upcoming.map(u => ({
+        notifications: upcoming.slice(0, MAX_ALARMS).map(u => ({
           id: numericId(u.doseId),
           channelId: CHANNEL,
+          actionTypeId: ACTIONS,
           title: `Hora de tu ${u.medicineName}`,
           body: u.doseDescription,
           schedule: { at: new Date(u.at), allowWhileIdle: true },
@@ -80,7 +101,33 @@ export function syncAlarms(): Promise<void> {
       // Sin conexión: quedan las alarmas que ya estaban programadas.
     } finally {
       syncing = null;
+      if (rerun) {
+        rerun = false;
+        void syncAlarms();
+      }
     }
   })();
   return syncing;
+}
+
+/**
+ * Botones de la notificación. Llama a `onChange` después de registrar la toma
+ * para que la pantalla se actualice; las alarmas se reprograman en ese refresh.
+ */
+export function listenAlarmActions(onChange: () => void): () => void {
+  if (!isNativeApp()) return () => {};
+  const handle = LocalNotifications.addListener('localNotificationActionPerformed', async ({ actionId, notification }) => {
+    const doseId = notification.extra?.doseId as string | undefined;
+    if (!doseId) return;
+    try {
+      if (actionId === 'take') await api(`/api/doses/${doseId}/take`, { method: 'POST' });
+      else if (actionId === 'postpone') await api(`/api/doses/${doseId}/postpone`, { method: 'POST', body: { minutes: 10 } });
+    } catch {
+      // Toma de otro día o ya registrada: se ignora, la app muestra el estado real.
+    }
+    onChange();
+  });
+  return () => {
+    void handle.then(h => h.remove());
+  };
 }

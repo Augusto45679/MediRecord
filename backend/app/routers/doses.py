@@ -204,6 +204,8 @@ def take(dose_id: str, user: User = Depends(get_current_user), session: Session 
 @router.post("/doses/{dose_id}/omit", response_model=DoseOut)
 def omit(dose_id: str, data: OmitIn, user: User = Depends(get_current_user), session: Session = Depends(get_session), now: datetime = Depends(get_now)):
     def change(ctx: _Ctx) -> None:
+        if ctx.log.status == "taken":
+            _adjust_stock(ctx, +1)
         ctx.log.status, ctx.log.registered_at, ctx.log.omission_reason = "omitted", ctx.now, data.reason
         ctx.log.postponed_until = None
 

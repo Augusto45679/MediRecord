@@ -1,4 +1,10 @@
+import { Capacitor } from '@capacitor/core';
+import { LocalError, localApi } from '../local/localApi';
+
 export const TOKEN_KEY = 'medirecord_token';
+
+/** App Android (o VITE_OFFLINE=1): todo se guarda en el dispositivo, sin servidor ni cuentas. */
+export const OFFLINE = Capacitor.isNativePlatform() || import.meta.env.VITE_OFFLINE === '1';
 
 const BASE_URL: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
 
@@ -38,6 +44,18 @@ function detailMessage(body: unknown, fallback: string): string {
 }
 
 export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+  if (OFFLINE) {
+    try {
+      return await localApi<T>(path, init);
+    } catch (err) {
+      if (!(err instanceof LocalError)) throw new ApiError(500, 'Algo salió mal. Intentá de nuevo.');
+      if (err.status === 401) {
+        setToken(null);
+        onUnauthorized();
+      }
+      throw new ApiError(err.status, err.message);
+    }
+  }
   const headers: Record<string, string> = {};
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
