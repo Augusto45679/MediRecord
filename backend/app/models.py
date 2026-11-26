@@ -40,6 +40,9 @@ class Medicine(SQLModel, table=True):
     status: str = "active"  # 'active' | 'paused'
     added_by: str = ""
     created_at: datetime = Field(default_factory=utcnow)
+    # Desde cuándo rige el horario actual (alta, último cambio de horario/días o reactivación).
+    # Los días anteriores se reconstruyen solo con los DoseLog guardados.
+    schedule_from: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
 
 
@@ -51,7 +54,7 @@ class DoseLog(SQLModel, table=True):
     patient_id: int = Field(foreign_key="user.id", index=True)
     day: date = Field(index=True)
     scheduled_time: str
-    status: str = "pending"  # 'pending' | 'taken' | 'omitted'
+    status: str = "pending"  # 'pending' | 'taken' | 'omitted' | 'unconfirmed' (consolidada)
     registered_at: Optional[datetime] = None
     omission_reason: Optional[str] = None
     postponed_until: Optional[str] = None

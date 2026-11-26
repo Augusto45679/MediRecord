@@ -4,7 +4,8 @@ import type { Medicine, DayOfWeek } from '../../types';
 import {
   ALL_DAYS,
   formatDaysFrequency,
-  formatScheduleSummary
+  formatScheduleSummary,
+  splitDose
 } from '../../utils/scheduleUtils';
 import { DaysOfWeekSelector, DaysBadgeRow } from './DaysOfWeekSelector';
 import {
@@ -116,8 +117,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
     addMedicine({
       name: newMedName.trim(),
       dose: newMedDose.trim(),
-      concentration: newMedDose.split('de ')[1] || '',
-      amount: newMedDose.split(' de')[0] || '',
+      ...splitDose(newMedDose),
       times,
       days: newMedDays,
       frequency

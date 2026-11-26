@@ -54,3 +54,15 @@ def test_short_password_422(client):
         json={"username": "ana", "password": "123", "displayName": "Ana", "role": "patient"},
     )
     assert r.status_code == 422
+
+
+def test_default_jwt_secret_rejected_outside_sqlite():
+    import pytest
+    from pydantic import ValidationError
+
+    from app.config import Settings
+
+    with pytest.raises(ValidationError):
+        Settings(database_url="postgresql://u:p@h/db", jwt_secret=Settings.model_fields["jwt_secret"].default)
+    Settings(database_url="postgresql://u:p@h/db", jwt_secret="x" * 40)
+    Settings(database_url="sqlite://")

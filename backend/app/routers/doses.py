@@ -1,6 +1,8 @@
+from collections.abc import Callable
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.access import require_caregiver, require_patient, resolve_patient
@@ -76,6 +78,12 @@ class _Ctx:
         self.patient, self.medicine, self.day, self.time, self.log, self.now = patient, medicine, day, time, log, now
 
 
+def _find_log(session: Session, med_id: int, day: date, time: str) -> DoseLog | None:
+    return session.exec(
+        select(DoseLog).where(DoseLog.medicine_id == med_id, DoseLog.day == day, DoseLog.scheduled_time == time)
+    ).first()
+
+
 def _load(dose_id: str, patient: User, session: Session, now: datetime) -> _Ctx:
     not_found = HTTPException(status.HTTP_404_NOT_FOUND, "Toma no encontrada")
     try:
@@ -87,9 +95,7 @@ def _load(dose_id: str, patient: User, session: Session, now: datetime) -> _Ctx:
         raise not_found
     if day > local_today(now, patient.timezone):
         raise not_found
-    log = session.exec(
-        select(DoseLog).where(DoseLog.medicine_id == med_id, DoseLog.day == day, DoseLog.scheduled_time == time)
-    ).first()
+    log = _find_log(session, med_id, day, time)
     views = build_day_doses([medicine], [log] if log else [], day, now, patient.timezone, patient.alert_wait_minutes)
     if not any(v.time == time for v in views):
         raise not_found
@@ -117,6 +123,23 @@ def _save(ctx: _Ctx, session: Session) -> DoseOut:
     return to_dose_out(view)
 
 
+Change = Callable[[_Ctx], None]
+
+
+def _mutate(load: Callable[[], _Ctx], change: Change, session: Session) -> DoseOut:
+    """Aplica `change` al log de la toma. Si otra request insertó el mismo log en paralelo
+    (doble toque, o paciente y familiar a la vez), reintenta una vez sobre el log existente."""
+    ctx = load()
+    change(ctx)
+    try:
+        return _save(ctx, session)
+    except IntegrityError:
+        session.rollback()
+        ctx = load()
+        change(ctx)
+        return _save(ctx, session)
+
+
 def _patient_ctx(dose_id: str, user: User, session: Session, now: datetime) -> _Ctx:
     require_patient(user)
     ctx = _load(dose_id, user, session, now)
@@ -125,45 +148,53 @@ def _patient_ctx(dose_id: str, user: User, session: Session, now: datetime) -> _
     return ctx
 
 
+def _take(ctx: _Ctx) -> None:
+    ctx.log.status, ctx.log.registered_at = "taken", ctx.now
+    ctx.log.omission_reason = ctx.log.postponed_until = None
+
+
+def _undo(ctx: _Ctx) -> None:
+    ctx.log.status = "pending"
+    ctx.log.registered_at = ctx.log.omission_reason = ctx.log.postponed_until = None
+
+
 @router.post("/doses/{dose_id}/take", response_model=DoseOut)
 def take(dose_id: str, user: User = Depends(get_current_user), session: Session = Depends(get_session), now: datetime = Depends(get_now)):
-    ctx = _patient_ctx(dose_id, user, session, now)
-    ctx.log.status, ctx.log.registered_at = "taken", now
-    ctx.log.omission_reason = ctx.log.postponed_until = None
-    return _save(ctx, session)
+    return _mutate(lambda: _patient_ctx(dose_id, user, session, now), _take, session)
 
 
 @router.post("/doses/{dose_id}/omit", response_model=DoseOut)
 def omit(dose_id: str, data: OmitIn, user: User = Depends(get_current_user), session: Session = Depends(get_session), now: datetime = Depends(get_now)):
-    ctx = _patient_ctx(dose_id, user, session, now)
-    ctx.log.status, ctx.log.registered_at, ctx.log.omission_reason = "omitted", now, data.reason
-    ctx.log.postponed_until = None
-    return _save(ctx, session)
+    def change(ctx: _Ctx) -> None:
+        ctx.log.status, ctx.log.registered_at, ctx.log.omission_reason = "omitted", ctx.now, data.reason
+        ctx.log.postponed_until = None
+
+    return _mutate(lambda: _patient_ctx(dose_id, user, session, now), change, session)
 
 
 @router.post("/doses/{dose_id}/postpone", response_model=DoseOut)
 def postpone(dose_id: str, data: PostponeIn, user: User = Depends(get_current_user), session: Session = Depends(get_session), now: datetime = Depends(get_now)):
-    ctx = _patient_ctx(dose_id, user, session, now)
-    if ctx.log.status != "pending":
-        raise HTTPException(status.HTTP_409_CONFLICT, "Esa toma ya está registrada")
-    base = max(minutes(hhmm(to_local(now, user.timezone))), minutes(ctx.time)) + data.minutes
-    base = min(base, 23 * 60 + 59)
-    ctx.log.postponed_until = f"{base // 60:02d}:{base % 60:02d}"
-    return _save(ctx, session)
+    def change(ctx: _Ctx) -> None:
+        if ctx.log.status != "pending":
+            raise HTTPException(status.HTTP_409_CONFLICT, "Esa toma ya está registrada")
+        base = max(minutes(hhmm(to_local(now, user.timezone))), minutes(ctx.time)) + data.minutes
+        base = min(base, 23 * 60 + 59)
+        ctx.log.postponed_until = f"{base // 60:02d}:{base % 60:02d}"
+
+    return _mutate(lambda: _patient_ctx(dose_id, user, session, now), change, session)
 
 
 @router.post("/doses/{dose_id}/undo", response_model=DoseOut)
 def undo(dose_id: str, user: User = Depends(get_current_user), session: Session = Depends(get_session), now: datetime = Depends(get_now)):
-    ctx = _patient_ctx(dose_id, user, session, now)
-    ctx.log.status = "pending"
-    ctx.log.registered_at = ctx.log.omission_reason = ctx.log.postponed_until = None
-    return _save(ctx, session)
+    return _mutate(lambda: _patient_ctx(dose_id, user, session, now), _undo, session)
 
 
 @router.post("/doses/{dose_id}/attend", response_model=DoseOut)
 def attend(dose_id: str, user: User = Depends(get_current_user), session: Session = Depends(get_session), now: datetime = Depends(get_now)):
     require_caregiver(user)
     patient = resolve_patient(user, session)
-    ctx = _load(dose_id, patient, session, now)
-    ctx.log.caregiver_attended_at = now
-    return _save(ctx, session)
+
+    def change(ctx: _Ctx) -> None:
+        ctx.log.caregiver_attended_at = ctx.now
+
+    return _mutate(lambda: _load(dose_id, patient, session, now), change, session)

@@ -27,8 +27,10 @@ def _dose_1400(client, token):
     return _today(client, token)["doses"][0]["id"]
 
 
-def test_today_lists_scheduled_doses(client, patient, at_1402):
+def test_today_lists_scheduled_doses(client, patient, set_now):
+    set_now(AT_1402 - timedelta(days=1))
     _med(client, patient, ["08:00", "14:00"])
+    set_now(AT_1402)
     day = _today(client, patient)
     assert day["date"] == "2026-11-26" and day["isToday"] is True
     assert [(d["time"], d["status"]) for d in day["doses"]] == [("08:00", "unconfirmed"), ("14:00", "pending")]
@@ -113,3 +115,61 @@ def test_undo_after_schedule_change_removes_dose(client, patient, at_1402):
     r = client.post(f"/api/doses/{did}/undo", headers=auth(patient))
     assert r.status_code == 200 and r.json()["status"] == "pending"
     assert [d["time"] for d in _today(client, patient)["doses"]] == ["18:00"]
+
+
+# --- Hallazgos de la revisión final ---
+
+def test_pause_keeps_past_unconfirmed_in_history(client, patient, set_now):
+    set_now(AT_1402 - timedelta(days=3))
+    mid = _med(client, patient, ["08:00"])
+    set_now(AT_1402)
+    client.post(f"/api/medicines/{mid}/toggle-pause", headers=auth(patient))
+    days = client.get("/api/history?days=3", headers=auth(patient)).json()
+    assert [d["date"] for d in days] == ["2026-11-26", "2026-11-25", "2026-11-24"]
+    assert [x["status"] for x in days[0]["doses"]] == ["unconfirmed"]  # la de 08:00 de hoy ya venció
+    assert [x["status"] for x in days[1]["doses"]] == ["unconfirmed"]
+    assert [x["status"] for x in days[2]["doses"]] == ["unconfirmed"]
+
+
+def test_schedule_edit_keeps_past_slots(client, patient, set_now):
+    set_now(AT_1402 - timedelta(days=2))
+    mid = _med(client, patient, ["08:00"])
+    set_now(AT_1402)
+    client.patch(f"/api/medicines/{mid}", json={"times": ["21:00"]}, headers=auth(patient))
+    yesterday = client.get("/api/history?days=2", headers=auth(patient)).json()[1]
+    assert [(d["time"], d["status"]) for d in yesterday["doses"]] == [("08:00", "unconfirmed")]
+
+
+def test_medicine_added_midday_skips_earlier_slots(client, patient, at_1402):
+    _med(client, patient, ["08:00", "20:00"])
+    assert [(d["time"], d["status"]) for d in _today(client, patient)["doses"]] == [("20:00", "pending")]
+
+
+def test_concurrent_insert_does_not_500(client, patient, at_1402, monkeypatch):
+    from app.routers import doses as doses_router
+
+    did = _dose_1400(client, patient)
+    # Simula la carrera: otra request ya insertó el log, pero esta no lo vio al cargar.
+    client.post(f"/api/doses/{did}/postpone", json={"minutes": 10}, headers=auth(patient))
+    real = doses_router._find_log
+    calls = {"n": 0}
+
+    def stale_first(*args):
+        calls["n"] += 1
+        return None if calls["n"] == 1 else real(*args)
+
+    monkeypatch.setattr(doses_router, "_find_log", stale_first)
+    r = client.post(f"/api/doses/{did}/take", headers=auth(patient))
+    assert r.status_code == 200 and r.json()["status"] == "taken"
+
+
+def test_resume_does_not_backfill_paused_days(client, patient, set_now):
+    set_now(AT_1402 - timedelta(days=5))
+    mid = _med(client, patient, ["08:00"])
+    set_now(AT_1402 - timedelta(days=3))
+    client.post(f"/api/medicines/{mid}/toggle-pause", headers=auth(patient))
+    set_now(AT_1402)
+    client.post(f"/api/medicines/{mid}/toggle-pause", headers=auth(patient))
+    days = {d["date"]: d["doses"] for d in client.get("/api/history?days=6", headers=auth(patient)).json()}
+    assert days["2026-11-24"] == [] and days["2026-11-25"] == []
+    assert [x["status"] for x in days["2026-11-22"]] == ["unconfirmed"]

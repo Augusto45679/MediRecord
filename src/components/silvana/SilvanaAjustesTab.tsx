@@ -151,8 +151,7 @@ export const SilvanaAjustesTab: React.FC = () => {
     const handleSubmitCode = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!code.trim()) return;
-      await inviteByCode(code);
-      setCode('');
+      if (await inviteByCode(code)) setCode('');
     };
 
     return (

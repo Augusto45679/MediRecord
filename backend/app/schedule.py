@@ -9,6 +9,8 @@ from app.models import DoseLog, Medicine
 
 DAY_KEYS = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"]
 TERMINAL = ("taken", "omitted")
+# Estados que hacen aparecer la toma aunque la medicina ya no la tenga en su horario actual.
+PERSISTED = ("taken", "omitted", "unconfirmed")
 
 
 @dataclass
@@ -70,10 +72,14 @@ def day_key(day: date) -> str:
     return DAY_KEYS[day.weekday()]
 
 
+def schedule_start(medicine: Medicine) -> datetime:
+    return medicine.schedule_from or medicine.created_at
+
+
 def is_scheduled_on(medicine: Medicine, day: date, tz: str) -> bool:
     if medicine.status != "active":
         return False
-    if to_local(medicine.created_at, tz).date() > day:
+    if to_local(schedule_start(medicine), tz).date() > day:
         return False
     if medicine.deleted_at is not None and to_local(medicine.deleted_at, tz).date() <= day:
         return False
@@ -97,10 +103,15 @@ def build_day_doses(
     slots: dict[tuple[int, str], Medicine] = {}
     for m in medicines:
         if is_scheduled_on(m, day, tz):
+            created = to_local(schedule_start(m), tz)
+            created_min = created.hour * 60 + created.minute if created.date() == day else -1
             for t in m.times:
+                # Una medicina cargada a mitad del día no genera avisos por horarios que ya vencieron.
+                if minutes(t) + wait_minutes < created_min:
+                    continue
                 slots[(m.id, t)] = m
     for (med_id, t), l in day_logs.items():
-        if l.status in TERMINAL and med_id in by_id:
+        if l.status in PERSISTED and med_id in by_id:
             slots[(med_id, t)] = by_id[med_id]
 
     result: list[DoseView] = []
@@ -129,7 +140,7 @@ def build_day_doses(
             view.postponed_until = None
         else:
             deadline = datetime.combine(day, datetime.min.time(), zone) + timedelta(minutes=minutes(t) + wait_minutes)
-            if day < today or now_local > deadline:
+            if (l is not None and l.status == "unconfirmed") or day < today or now_local > deadline:
                 view.status = "unconfirmed"
         result.append(view)
 
@@ -165,3 +176,25 @@ def format_days_frequency(days: list[str]) -> str:
     if len(ordered) == 1:
         return _ONLY[ordered[0]]
     return ", ".join(_SHORT[d] for d in ordered)
+
+
+HISTORY_LIMIT_DAYS = 31
+
+
+def unconfirmed_to_persist(
+    medicine: Medicine, logs: list[DoseLog], now_utc: datetime, tz: str, wait_minutes: int
+) -> list[tuple[date, str]]:
+    """Tomas vencidas sin registro (hasta hoy) que hay que guardar antes de pausar,
+    editar o borrar la medicina, para que el historial no cambie retroactivamente."""
+    today = local_today(now_utc, tz)
+    first = max(to_local(schedule_start(medicine), tz).date(), today - timedelta(days=HISTORY_LIMIT_DAYS))
+    by_key = {(l.day, l.scheduled_time): l for l in logs}
+    out: list[tuple[date, str]] = []
+    day = first
+    while day <= today:
+        for v in build_day_doses([medicine], logs, day, now_utc, tz, wait_minutes):
+            log = by_key.get((day, v.time))
+            if v.status == "unconfirmed" and (log is None or log.status == "pending"):
+                out.append((day, v.time))
+        day += timedelta(days=1)
+    return out

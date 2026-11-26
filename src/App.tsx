@@ -6,7 +6,7 @@ import { SilvanaAccessFlow } from './components/common/SilvanaAccessFlow';
 import { AuthScreen } from './components/common/AuthScreen';
 
 const MediRecordAppInner: React.FC = () => {
-  const { state, isAuthenticated, login, register, setSpecialView } = useMediRecord();
+  const { state, isAuthenticated, login, register, logout, refresh, setSpecialView } = useMediRecord();
   const { specialView } = state;
 
   let content: React.ReactNode;
@@ -22,6 +22,22 @@ const MediRecordAppInner: React.FC = () => {
         <div role="status" style={{ fontSize: 18, fontWeight: 600, color: 'var(--color-primary-dark)' }}>
           Cargando…
         </div>
+      </div>
+    );
+  } else if (!state.user) {
+    content = (
+      <div
+        className="phone-mockup-frame"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 }}
+      >
+        <div role="alert" style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary-dark)', textAlign: 'center' }}>
+          No pudimos cargar tus datos
+        </div>
+        <div style={{ fontSize: 15, color: 'var(--color-muted)', textAlign: 'center' }}>
+          Revisá tu conexión. Si el servidor se estaba iniciando, en unos segundos debería andar.
+        </div>
+        <button className="btn-primary" onClick={() => refresh()}>Reintentar</button>
+        <button className="btn-soft" onClick={logout}>Cerrar sesión</button>
       </div>
     );
   } else if (specialView === 'onboarding-roberto') {

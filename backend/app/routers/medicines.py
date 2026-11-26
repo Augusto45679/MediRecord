@@ -6,8 +6,8 @@ from sqlmodel import Session, col, select
 from app.access import resolve_patient
 from app.clock import get_now
 from app.db import get_session
-from app.models import Medicine, User
-from app.schedule import format_days_frequency
+from app.models import DoseLog, Medicine, User
+from app.schedule import format_days_frequency, unconfirmed_to_persist
 from app.schemas import MedicineIn, MedicineOut, MedicineUpdate
 from app.security import get_current_user
 
@@ -27,6 +27,17 @@ def to_medicine_out(m: Medicine) -> MedicineOut:
         added_by=m.added_by,
         status=m.status,
     )
+
+
+def _persist_unconfirmed(m: Medicine, patient: User, session: Session, now: datetime) -> None:
+    """Antes de pausar, editar horarios o borrar, guarda las tomas vencidas sin registro
+    para que el historial pasado no cambie."""
+    logs = list(session.exec(select(DoseLog).where(DoseLog.medicine_id == m.id)).all())
+    by_key = {(l.day, l.scheduled_time): l for l in logs}
+    for day, time in unconfirmed_to_persist(m, logs, now, patient.timezone, patient.alert_wait_minutes):
+        log = by_key.get((day, time)) or DoseLog(medicine_id=m.id, patient_id=patient.id, day=day, scheduled_time=time)
+        log.status = "unconfirmed"
+        session.add(log)
 
 
 def _get_owned(med_id: int, patient: User, session: Session) -> Medicine:
@@ -68,8 +79,13 @@ def update_medicine(
     data: MedicineUpdate,
     user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
+    now: datetime = Depends(get_now),
 ):
-    m = _get_owned(med_id, resolve_patient(user, session), session)
+    patient = resolve_patient(user, session)
+    m = _get_owned(med_id, patient, session)
+    if data.times is not None or data.days is not None:
+        _persist_unconfirmed(m, patient, session, now)
+        m.schedule_from = now
     for key, value in data.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(m, key, value)
     session.add(m)
@@ -79,8 +95,18 @@ def update_medicine(
 
 
 @router.post("/{med_id}/toggle-pause", response_model=MedicineOut)
-def toggle_pause(med_id: int, user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    m = _get_owned(med_id, resolve_patient(user, session), session)
+def toggle_pause(
+    med_id: int,
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+    now: datetime = Depends(get_now),
+):
+    patient = resolve_patient(user, session)
+    m = _get_owned(med_id, patient, session)
+    if m.status == "active":
+        _persist_unconfirmed(m, patient, session, now)
+    else:
+        m.schedule_from = now  # los días en pausa no generan tomas
     m.status = "paused" if m.status == "active" else "active"
     session.add(m)
     session.commit()
@@ -95,7 +121,9 @@ def delete_medicine(
     session: Session = Depends(get_session),
     now: datetime = Depends(get_now),
 ):
-    m = _get_owned(med_id, resolve_patient(user, session), session)
+    patient = resolve_patient(user, session)
+    m = _get_owned(med_id, patient, session)
+    _persist_unconfirmed(m, patient, session, now)
     m.deleted_at = now
     session.add(m)
     session.commit()

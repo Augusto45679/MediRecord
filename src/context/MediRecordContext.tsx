@@ -36,25 +36,25 @@ interface MediRecordContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
-  setFontSize: (size: FontSizePreference) => Promise<void>;
-  setHighContrast: (enabled: boolean) => Promise<void>;
-  setSoundEnabled: (enabled: boolean) => Promise<void>;
-  setVibrationEnabled: (enabled: boolean) => Promise<void>;
-  setVoiceConfirmationEnabled: (enabled: boolean) => Promise<void>;
-  setSilvanaAlertWait: (minutes: number) => Promise<void>;
-  markDoseTaken: (doseId: string) => Promise<void>;
-  markDoseOmitted: (doseId: string, reason: OmissionReason) => Promise<void>;
-  postponeDose: (doseId: string, minutes?: number) => Promise<void>;
-  undoDoseStatus: (doseId: string) => Promise<void>;
-  attendNotice: (doseId: string) => Promise<void>;
-  addMedicine: (med: MedicineInput) => Promise<void>;
-  updateMedicine: (id: string, updated: Partial<MedicineInput>) => Promise<void>;
-  togglePauseMedicine: (id: string) => Promise<void>;
-  deleteMedicine: (id: string) => Promise<void>;
-  inviteByCode: (code: string) => Promise<void>;
-  acceptInvitation: () => Promise<void>;
-  rejectInvitation: () => Promise<void>;
-  unlink: () => Promise<void>;
+  setFontSize: (size: FontSizePreference) => Promise<boolean>;
+  setHighContrast: (enabled: boolean) => Promise<boolean>;
+  setSoundEnabled: (enabled: boolean) => Promise<boolean>;
+  setVibrationEnabled: (enabled: boolean) => Promise<boolean>;
+  setVoiceConfirmationEnabled: (enabled: boolean) => Promise<boolean>;
+  setSilvanaAlertWait: (minutes: number) => Promise<boolean>;
+  markDoseTaken: (doseId: string) => Promise<boolean>;
+  markDoseOmitted: (doseId: string, reason: OmissionReason) => Promise<boolean>;
+  postponeDose: (doseId: string, minutes?: number) => Promise<boolean>;
+  undoDoseStatus: (doseId: string) => Promise<boolean>;
+  attendNotice: (doseId: string) => Promise<boolean>;
+  addMedicine: (med: MedicineInput) => Promise<boolean>;
+  updateMedicine: (id: string, updated: Partial<MedicineInput>) => Promise<boolean>;
+  togglePauseMedicine: (id: string) => Promise<boolean>;
+  deleteMedicine: (id: string) => Promise<boolean>;
+  inviteByCode: (code: string) => Promise<boolean>;
+  acceptInvitation: () => Promise<boolean>;
+  rejectInvitation: () => Promise<boolean>;
+  unlink: () => Promise<boolean>;
 }
 
 const NO_LINK: LinkInfo = { status: 'none', otherDisplayName: null, otherUsername: null };
@@ -107,7 +107,8 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [token, setTokenState] = useState<string | null>(() => getToken());
   const [state, setState] = useState<MediRecordState>(() => ({ ...EMPTY_STATE, loading: Boolean(getToken()) }));
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const refreshing = useRef<Promise<void> | null>(null);
+  // Cada refresh/login/logout incrementa la generación; solo se aplica el resultado más reciente.
+  const generation = useRef(0);
 
   const showToast = useCallback((text: string, type: ToastMessage['type'] = 'info', subtext?: string) => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -118,6 +119,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const dismissToast = (id: string) => setToasts(prev => prev.filter(t => t.id !== id));
 
   const logout = useCallback(() => {
+    generation.current++;
     setToken(null);
     setTokenState(null);
     setState({ ...EMPTY_STATE });
@@ -125,12 +127,14 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   useEffect(() => {
     setOnUnauthorized(() => {
+      generation.current++;
       setTokenState(null);
       setState({ ...EMPTY_STATE });
     });
   }, []);
 
   const doRefresh = useCallback(async () => {
+    const gen = ++generation.current;
     const [user, link] = await Promise.all([api<ApiUser>('/api/me'), api<LinkInfo>('/api/link')]);
     const canSeePatient = user.role === 'patient' || link.status === 'accepted';
     let medicines: Medicine[] = [];
@@ -143,6 +147,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         api<DayDoses[]>('/api/history?days=7')
       ]);
     }
+    if (gen !== generation.current) return; // llegó tarde: hubo otro refresh, login o logout
     setState(prev => ({
       ...prev,
       ...fromUser(user),
@@ -157,14 +162,11 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const refresh = useCallback(async () => {
     if (!getToken()) return;
-    if (!refreshing.current) {
-      refreshing.current = doRefresh().finally(() => {
-        refreshing.current = null;
-      });
-    }
+    const gen = generation.current + 1;
     try {
-      await refreshing.current;
+      await doRefresh();
     } catch (err) {
+      if (gen !== generation.current) return;
       setState(prev => ({ ...prev, loading: false }));
       if (!(err instanceof ApiError && err.status === 401)) {
         showToast('No pudimos actualizar', 'alert', errorText(err));
@@ -187,25 +189,28 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, [token, refresh]);
 
-  /** Ejecuta una mutación, refresca y muestra el toast de éxito (o el error). */
+  /** Ejecuta una mutación, refresca y muestra el toast de éxito (o el error). Devuelve si salió bien. */
   const run = useCallback(
-    async (fn: () => Promise<unknown>, success?: [string, ToastMessage['type'], string?]) => {
+    async (fn: () => Promise<unknown>, success?: [string, ToastMessage['type'], string?]): Promise<boolean> => {
       try {
         await fn();
-        await refresh();
-        if (success) showToast(success[0], success[1], success[2]);
       } catch (err) {
         if (!(err instanceof ApiError && err.status === 401)) {
           showToast('No se pudo guardar', 'alert', errorText(err));
         }
+        return false;
       }
+      if (success) showToast(success[0], success[1], success[2]);
+      await refresh();
+      return true;
     },
     [refresh, showToast]
   );
 
   const startSession = (newToken: string, user: ApiUser) => {
+    generation.current++;
     setToken(newToken);
-    setState(prev => ({ ...prev, ...fromUser(user), loading: true, currentTab: 'hoy' }));
+    setState({ ...EMPTY_STATE, ...fromUser(user), loading: true, todayDate: localIsoDate() });
     setTokenState(newToken);
   };
 
