@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useMediRecord } from '../../context/MediRecordContext';
-import type { Medicine, DayOfWeek } from '../../types';
+import type { Medicine, DayOfWeek, MedForm } from '../../types';
 import {
   ALL_DAYS,
-  formatDaysFrequency,
+  formatFrequency,
   formatScheduleSummary,
-  splitDose
+  formLabel,
+  splitDose,
+  stockStatus
 } from '../../utils/scheduleUtils';
-import { DaysOfWeekSelector, DaysBadgeRow } from './DaysOfWeekSelector';
+import { FrequencyFields, TimesFields, FormAndStockFields } from './ScheduleFields';
+import { DaysBadgeRow } from './DaysOfWeekSelector';
 import {
   Plus,
   Pill,
@@ -44,53 +47,66 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
 
   // Edit state
   const [editDose, setEditDose] = useState('');
-  const [editTime1, setEditTime1] = useState('');
-  const [editTime2, setEditTime2] = useState('');
+  const [editTimes, setEditTimes] = useState<string[]>(['']);
   const [editDays, setEditDays] = useState<DayOfWeek[]>(ALL_DAYS);
+  const [editInterval, setEditInterval] = useState(1);
+  const [editEndDate, setEditEndDate] = useState('');
+  const [editForm, setEditForm] = useState<MedForm>('comprimido');
+  const [editStock, setEditStock] = useState('');
+  const [editPerDose, setEditPerDose] = useState(1);
 
   // Add Wizard State (Steps 1 to 4 from I-02 to I-05)
   const [addStep, setAddStep] = useState(1);
   const [newMedName, setNewMedName] = useState('');
   const [newMedDose, setNewMedDose] = useState('');
-  const [newMedTime1, setNewMedTime1] = useState('09:00');
-  const [newMedTime2, setNewMedTime2] = useState('');
+  const [newMedTimes, setNewMedTimes] = useState<string[]>(['09:00']);
+  const [newMedForm, setNewMedForm] = useState<MedForm>('comprimido');
+  const [newMedStock, setNewMedStock] = useState('');
+  const [newMedPerDose, setNewMedPerDose] = useState(1);
   const [newMedDays, setNewMedDays] = useState<DayOfWeek[]>(ALL_DAYS);
+  const [newMedInterval, setNewMedInterval] = useState(1); // 1 = días de la semana
+  const [newMedEndDate, setNewMedEndDate] = useState('');
 
   const handleOpenEdit = (med: Medicine) => {
     setEditingMed(med);
     setEditDose(med.dose);
-    setEditTime1(med.times[0] || '');
-    setEditTime2(med.times[1] || '');
+    setEditTimes(med.times.length > 0 ? [...med.times] : ['']);
     setEditDays(med.days && med.days.length > 0 ? med.days : ALL_DAYS);
+    setEditInterval(med.intervalDays ?? 1);
+    setEditEndDate(med.endDate ?? '');
+    setEditForm(med.form ?? 'comprimido');
+    setEditStock(med.stock === null || med.stock === undefined ? '' : String(med.stock));
+    setEditPerDose(med.stockPerDose ?? 1);
   };
 
+  const cleanTimes = (times: string[]) => [...new Set(times.filter(t => t.trim()))].sort();
+  const newStepValid = cleanTimes(newMedTimes).length > 0 && (newMedInterval > 1 || newMedDays.length > 0);
+  const editValid = cleanTimes(editTimes).length > 0 && (editInterval > 1 || editDays.length > 0);
+
   const handleSaveEdit = () => {
-    if (!editingMed || editDays.length === 0) return;
-    const times = [editTime1];
-    if (editTime2.trim()) times.push(editTime2);
-
-    const frequency = formatDaysFrequency(editDays);
-
-    updateMedicine(editingMed.id, {
+    if (!editingMed || !editValid) return;
+    const times = cleanTimes(editTimes);
+    const endDate = editEndDate || null;
+    const stock = editStock === '' ? null : Number(editStock);
+    const frequency = formatFrequency(editDays, editInterval, endDate);
+    const changes = {
       name: editingMed.name,
       dose: editDose,
       concentration: editDose.split('de ')[1] || editingMed.concentration,
       amount: editDose.split(' de')[0] || editingMed.amount,
       times,
       days: editDays,
-      frequency
-    });
+      intervalDays: editInterval,
+      endDate,
+      form: editForm,
+      stock,
+      stockPerDose: editPerDose
+    };
+
+    updateMedicine(editingMed.id, changes);
 
     if (selectedMed && selectedMed.id === editingMed.id) {
-      setSelectedMed({
-        ...selectedMed,
-        dose: editDose,
-        concentration: editDose.split('de ')[1] || selectedMed.concentration,
-        amount: editDose.split(' de')[0] || selectedMed.amount,
-        times,
-        days: editDays,
-        frequency
-      });
+      setSelectedMed({ ...selectedMed, ...changes, frequency });
     }
 
     setEditingMed(null);
@@ -100,19 +116,22 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
     setAddStep(1);
     setNewMedName('');
     setNewMedDose('');
-    setNewMedTime1('09:00');
-    setNewMedTime2('');
+    setNewMedTimes(['09:00']);
+    setNewMedForm('comprimido');
+    setNewMedStock('');
+    setNewMedPerDose(1);
     setNewMedDays([...ALL_DAYS]);
+    setNewMedInterval(1);
+    setNewMedEndDate('');
     setShowAddModal(true);
   };
 
   const handleFinishAdd = () => {
-    if (!newMedName.trim() || newMedDays.length === 0) return;
+    const times = cleanTimes(newMedTimes);
+    if (!newMedName.trim() || times.length === 0 || (newMedInterval === 1 && newMedDays.length === 0)) return;
 
-    const times = [newMedTime1];
-    if (newMedTime2.trim()) times.push(newMedTime2);
-
-    const frequency = formatDaysFrequency(newMedDays);
+    const endDate = newMedEndDate || null;
+    const frequency = formatFrequency(newMedDays, newMedInterval, endDate);
 
     addMedicine({
       name: newMedName.trim(),
@@ -120,6 +139,11 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
       ...splitDose(newMedDose),
       times,
       days: newMedDays,
+      intervalDays: newMedInterval,
+      endDate,
+      form: newMedForm,
+      stock: newMedStock === '' ? null : Number(newMedStock),
+      stockPerDose: newMedPerDose,
       frequency
     });
 
@@ -155,7 +179,34 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
               <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: 2 }}>
                 {selectedMed.dose}
               </div>
+              <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 2 }}>
+                {formLabel(selectedMed.form)}
+              </div>
             </div>
+
+            {(() => {
+              const st = stockStatus(selectedMed);
+              if (!st) return null;
+              return (
+                <div
+                  role={st.low ? 'alert' : undefined}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: 12,
+                    backgroundColor: st.low ? '#FDECEA' : '#FFFFFF',
+                    border: `1px solid ${st.low ? '#E8B4AE' : 'var(--border-mint)'}`,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: st.low ? '#8A2A1F' : 'var(--color-primary-dark)'
+                  }}
+                >
+                  {st.units === 0
+                    ? 'Se terminó. Hay que comprar más.'
+                    : `Quedan ${st.units} unidades${Number.isFinite(st.daysLeft) ? ` · alcanza para ${st.daysLeft} ${st.daysLeft === 1 ? 'día' : 'días'}` : ''}`}
+                  {st.low && st.units > 0 && <div style={{ fontSize: 13, fontWeight: 500, marginTop: 2 }}>Conviene comprar más pronto.</div>}
+                </div>
+              );
+            })()}
 
             <div>
               <div style={{ fontSize: 13, color: 'var(--color-muted)', fontWeight: 600 }}>
@@ -164,9 +215,11 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
               <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-primary-dark)', marginTop: 2 }}>
                 {selectedMed.frequency}
               </div>
-              <div style={{ marginTop: 4 }}>
-                <DaysBadgeRow days={selectedMed.days} />
-              </div>
+              {(selectedMed.intervalDays ?? 1) <= 1 && (
+                <div style={{ marginTop: 4 }}>
+                  <DaysBadgeRow days={selectedMed.days} />
+                </div>
+              )}
             </div>
 
             <div>
@@ -304,6 +357,11 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                         >
                           {isPaused ? 'Pausada' : 'Activa'}
                         </span>
+                        {stockStatus(med)?.low && (
+                          <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, backgroundColor: '#FDECEA', color: '#8A2A1F' }}>
+                            {med.stock === 0 ? 'Sin unidades' : 'Quedan pocas'}
+                          </span>
+                        )}
                       </div>
 
                       <div style={{ fontSize: 14, color: 'var(--color-muted)', marginTop: 2 }}>
@@ -311,7 +369,7 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                       </div>
 
                       <div style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 600, marginTop: 4 }}>
-                        {med.frequency} · {med.times.join(' y ')}
+                        {med.frequency} · {med.times.join(', ')}
                       </div>
                     </div>
                   </div>
@@ -442,6 +500,15 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                   />
                 </div>
 
+                <FormAndStockFields
+                  form={newMedForm}
+                  onFormChange={setNewMedForm}
+                  stock={newMedStock}
+                  onStockChange={setNewMedStock}
+                  perDose={newMedPerDose}
+                  onPerDoseChange={setNewMedPerDose}
+                />
+
                 <button
                   className="btn-primary"
                   data-testid="wizard-step2-continue"
@@ -466,66 +533,23 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                     : `Elegí los días de la semana y los horarios para ${patientName}.`}
                 </div>
 
-                {/* Days of week selector */}
-                <DaysOfWeekSelector
-                  selectedDays={newMedDays}
-                  onChange={setNewMedDays}
-                  label="¿Qué días toma esta medicina?"
-                  subtitle="Toca los días o usa un acceso rápido"
+                <FrequencyFields
+                  days={newMedDays}
+                  onDaysChange={setNewMedDays}
+                  intervalDays={newMedInterval}
+                  onIntervalChange={setNewMedInterval}
+                  endDate={newMedEndDate}
+                  onEndDateChange={setNewMedEndDate}
                 />
 
-                {/* Times section */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                    Horarios de las tomas
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
-                      Primer horario
-                    </label>
-                    <input
-                      type="time"
-                      value={newMedTime1}
-                      onChange={e => setNewMedTime1(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '14px',
-                        border: '1.5px solid var(--border-mint)',
-                        fontSize: 16,
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
-                      Segundo horario (opcional)
-                    </label>
-                    <input
-                      type="time"
-                      value={newMedTime2}
-                      onChange={e => setNewMedTime2(e.target.value)}
-                      placeholder="--:--"
-                      style={{
-                        width: '100%',
-                        padding: '12px 16px',
-                        borderRadius: '14px',
-                        border: '1.5px solid var(--border-mint)',
-                        fontSize: 16,
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                  </div>
-                </div>
+                <TimesFields times={newMedTimes} onChange={setNewMedTimes} />
 
                 <button
                   className="btn-primary"
                   data-testid="wizard-step3-continue"
-                  disabled={newMedDays.length === 0 || !newMedTime1}
+                  disabled={!newStepValid}
                   onClick={() => setAddStep(4)}
-                  style={{ opacity: newMedDays.length > 0 && newMedTime1 ? 1 : 0.5 }}
+                  style={{ opacity: newStepValid ? 1 : 0.5 }}
                 >
                   Continuar
                 </button>
@@ -554,11 +578,13 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
 
                   <div style={{ borderTop: '1px solid var(--border-mint)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ fontSize: 14, color: 'var(--color-primary)', fontWeight: 700 }}>
-                      {formatScheduleSummary(newMedDays, [newMedTime1, newMedTime2])}
+                      {formatScheduleSummary(newMedDays, cleanTimes(newMedTimes), newMedInterval, newMedEndDate || null)}
                     </div>
-                    <div>
-                      <DaysBadgeRow days={newMedDays} />
-                    </div>
+                    {newMedInterval === 1 && (
+                      <div>
+                        <DaysBadgeRow days={newMedDays} />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -681,43 +707,25 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 />
               </div>
 
-              {/* Day selection field in edit modal */}
-              <DaysOfWeekSelector
-                selectedDays={editDays}
-                onChange={setEditDays}
-                label="Días en que se toma"
-                subtitle="Modificá los días de la semana en los que se debe tomar"
+              <FrequencyFields
+                days={editDays}
+                onDaysChange={setEditDays}
+                intervalDays={editInterval}
+                onIntervalChange={setEditInterval}
+                endDate={editEndDate}
+                onEndDateChange={setEditEndDate}
               />
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary-dark)' }}>
-                  Horarios de las tomas
-                </div>
+              <TimesFields times={editTimes} onChange={setEditTimes} />
 
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
-                    Primer horario
-                  </label>
-                  <input
-                    type="time"
-                    value={editTime1}
-                    onChange={e => setEditTime1(e.target.value)}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid var(--border-mint)', fontSize: 15, fontFamily: 'inherit' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--color-muted)', marginBottom: 4 }}>
-                    Segundo horario (opcional)
-                  </label>
-                  <input
-                    type="time"
-                    value={editTime2}
-                    onChange={e => setEditTime2(e.target.value)}
-                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid var(--border-mint)', fontSize: 15, fontFamily: 'inherit' }}
-                  />
-                </div>
-              </div>
+              <FormAndStockFields
+                form={editForm}
+                onFormChange={setEditForm}
+                stock={editStock}
+                onStockChange={setEditStock}
+                perDose={editPerDose}
+                onPerDoseChange={setEditPerDose}
+              />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
@@ -725,8 +733,8 @@ export const MedicineManager: React.FC<MedicineManagerProps> = ({ userRole }) =>
                 className="btn-primary"
                 data-testid="edit-med-save"
                 onClick={handleSaveEdit}
-                disabled={editDays.length === 0 || !editTime1}
-                style={{ opacity: editDays.length > 0 && editTime1 ? 1 : 0.5 }}
+                disabled={!editValid}
+                style={{ opacity: editValid ? 1 : 0.5 }}
               >
                 <Save size={16} /> Guardar cambios
               </button>

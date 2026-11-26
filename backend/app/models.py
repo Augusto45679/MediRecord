@@ -37,6 +37,12 @@ class Medicine(SQLModel, table=True):
     amount: str = ""
     times: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
     days: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
+    # 1 = según `days`; N > 1 = cada N días contando desde el inicio del horario (ignora `days`).
+    interval_days: int = 1
+    end_date: Optional[date] = None  # último día con tomas (inclusive)
+    form: str = "comprimido"  # presentación: comprimido, cápsula, gotas...
+    stock: Optional[int] = None  # unidades que quedan; None = no se lleva la cuenta
+    stock_per_dose: int = 1  # unidades que descuenta cada toma
     status: str = "active"  # 'active' | 'paused'
     added_by: str = ""
     created_at: datetime = Field(default_factory=utcnow)

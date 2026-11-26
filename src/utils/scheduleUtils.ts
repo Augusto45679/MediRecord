@@ -1,4 +1,34 @@
-import type { DayOfWeek } from '../types';
+import type { DayOfWeek, MedForm, Medicine } from '../types';
+
+export const MAX_TIMES = 4;
+
+export const MED_FORMS: { key: MedForm; label: string }[] = [
+  { key: 'comprimido', label: 'Comprimido' },
+  { key: 'capsula', label: 'Cápsula' },
+  { key: 'gotas', label: 'Gotas' },
+  { key: 'jarabe', label: 'Jarabe' },
+  { key: 'inyeccion', label: 'Inyección' },
+  { key: 'inhalador', label: 'Inhalador' },
+  { key: 'crema', label: 'Crema o pomada' },
+  { key: 'otro', label: 'Otro' },
+];
+
+export function formLabel(form?: MedForm): string {
+  return MED_FORMS.find(f => f.key === form)?.label ?? 'Comprimido';
+}
+
+/** Días que alcanza el stock y si hay que avisar (7 días o menos). null si no se lleva la cuenta. */
+export function stockStatus(med: Pick<Medicine, 'stock' | 'stockPerDose' | 'times' | 'intervalDays' | 'days'>): {
+  units: number;
+  daysLeft: number;
+  low: boolean;
+} | null {
+  if (med.stock === null || med.stock === undefined) return null;
+  const perDay =
+    (med.times.length * (med.stockPerDose ?? 1) * (med.intervalDays && med.intervalDays > 1 ? 1 / med.intervalDays : (med.days?.length || 7) / 7));
+  const daysLeft = perDay > 0 ? Math.floor(med.stock / perDay) : Infinity;
+  return { units: med.stock, daysLeft, low: daysLeft <= 7 };
+}
 
 export interface DayOption {
   key: DayOfWeek;
@@ -76,24 +106,40 @@ export function formatDaysFrequency(days?: DayOfWeek[]): string {
   return sorted.map(d => shortNames[d]).join(', ');
 }
 
+/** "2026-12-06" → "06/12" */
+export function formatShortDate(iso: string): string {
+  const [, m, d] = iso.split('-');
+  return `${d}/${m}`;
+}
+
+/** Mismo texto que format_frequency de backend/app/schedule.py. */
+export function formatFrequency(days?: DayOfWeek[], intervalDays = 1, endDate?: string | null): string {
+  const base = intervalDays > 1 ? `Cada ${intervalDays} días` : formatDaysFrequency(days);
+  return endDate ? `${base} hasta el ${formatShortDate(endDate)}` : base;
+}
+
 /**
  * Formats full summary string for Step 4 of the wizard (Resumen)
  */
-export function formatScheduleSummary(days: DayOfWeek[] | undefined, times: string[]): string {
+export function formatScheduleSummary(
+  days: DayOfWeek[] | undefined,
+  times: string[],
+  intervalDays = 1,
+  endDate?: string | null
+): string {
   const validTimes = times.filter(t => Boolean(t && t.trim()));
   const timesStr = validTimes.join(' y ') || '--:--';
+  const until = endDate ? `, hasta el ${formatShortDate(endDate)}` : '';
+  return `${daysSummary(days, intervalDays)} a las ${timesStr}${until}`;
+}
+
+function daysSummary(days: DayOfWeek[] | undefined, intervalDays: number): string {
+  if (intervalDays > 1) return `Cada ${intervalDays} días`;
   const freq = formatDaysFrequency(days);
 
-  if (freq === 'Todos los días') {
-    return `Todos los días a las ${timesStr}`;
-  }
-  if (freq === 'Lunes a Viernes') {
-    return `De lunes a viernes a las ${timesStr}`;
-  }
-  if (freq === 'Fines de semana') {
-    return `Sábados y domingos a las ${timesStr}`;
-  }
-  return `${freq} a las ${timesStr}`;
+  if (freq === 'Lunes a Viernes') return 'De lunes a viernes';
+  if (freq === 'Fines de semana') return 'Sábados y domingos';
+  return freq;
 }
 
 /** "1 comprimido de 500 mg" → { amount: "1 comprimido", concentration: "500 mg" }. Solo corta en un " de " suelto. */

@@ -55,6 +55,8 @@ export interface DayDoses {
   doses: DoseRecord[];
 }
 
+export type MedForm = 'comprimido' | 'capsula' | 'gotas' | 'jarabe' | 'inyeccion' | 'inhalador' | 'crema' | 'otro';
+
 export interface Medicine {
   id: string;
   name: string;
@@ -63,6 +65,11 @@ export interface Medicine {
   amount: string; // "1 comprimido"
   times: string[]; // ["14:00", "20:00"]
   days?: DayOfWeek[]; // ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
+  intervalDays?: number; // 1 = según days; N > 1 = cada N días (ignora days)
+  endDate?: string | null; // "2026-12-06", último día con tomas (inclusive)
+  form?: MedForm;
+  stock?: number | null; // unidades que quedan; null = no se lleva la cuenta
+  stockPerDose?: number;
   frequency: string; // "Todos los días", "Lunes a Viernes", etc.
   addedBy: string; // nombre de quien la cargó
   status: 'active' | 'paused';

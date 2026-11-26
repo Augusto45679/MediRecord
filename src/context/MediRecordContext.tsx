@@ -13,6 +13,7 @@ import type {
 } from '../types';
 import { api, ApiError, getToken, setOnUnauthorized, setToken } from '../api/client';
 import type { RegisterData } from '../components/common/AuthScreen';
+import { clearAlarms, syncAlarms } from '../native/alarms';
 
 interface ToastMessage {
   id: string;
@@ -120,6 +121,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const logout = useCallback(() => {
     generation.current++;
+    void clearAlarms();
     setToken(null);
     setTokenState(null);
     setState({ ...EMPTY_STATE });
@@ -148,6 +150,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ]);
     }
     if (gen !== generation.current) return; // llegó tarde: hubo otro refresh, login o logout
+    if (user.role === 'patient') void syncAlarms(); // solo en la app Android
     setState(prev => ({
       ...prev,
       ...fromUser(user),
@@ -293,14 +296,19 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               concentration: med.concentration ?? '',
               amount: med.amount ?? '',
               times: med.times,
-              days: med.days
+              days: med.days,
+              intervalDays: med.intervalDays ?? 1,
+              endDate: med.endDate ?? null,
+              form: med.form ?? 'comprimido',
+              stock: med.stock ?? null,
+              stockPerDose: med.stockPerDose ?? 1
             }
           }),
         ['Medicina guardada', 'success', `${med.name} se agregó al plan.`]
       ),
     updateMedicine: (id, updated) => {
       const body: Record<string, unknown> = {};
-      for (const key of ['name', 'dose', 'concentration', 'amount', 'times', 'days'] as const) {
+      for (const key of ['name', 'dose', 'concentration', 'amount', 'times', 'days', 'intervalDays', 'endDate', 'form', 'stock', 'stockPerDose'] as const) {
         if (updated[key] !== undefined) body[key] = updated[key];
       }
       const name = updated.name ?? state.medicines.find(m => m.id === id)?.name ?? 'La medicina';

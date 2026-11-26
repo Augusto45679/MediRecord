@@ -99,3 +99,25 @@ def test_postponed_pending_log_keeps_pending_and_value():
     l.postponed_until = "14:10"
     d = build_day_doses([med(1, ["14:00"])], [l], D, datetime(2026, 11, 26, 17, 5, tzinfo=UTC), TZ, 60)[0]
     assert (d.status, d.postponed_until) == ("pending", "14:10")
+
+
+def test_interval_days_counts_from_schedule_start():
+    m = med(1, ["08:00"], created=date(2026, 11, 20))
+    m.interval_days = 3
+    # 20, 23, 26 sí; 24 y 25 no
+    assert [v.time for v in build_day_doses([m], [], D, NOW, TZ, 60)] == ["08:00"]
+    assert build_day_doses([m], [], date(2026, 11, 25), NOW, TZ, 60) == []
+
+
+def test_interval_ignores_weekdays():
+    m = med(1, ["08:00"], days=["lun"], created=date(2026, 11, 24))
+    m.interval_days = 2
+    assert len(build_day_doses([m], [], D, NOW, TZ, 60)) == 1  # jueves
+
+
+def test_end_date_is_inclusive():
+    m = med(1, ["08:00"])
+    m.end_date = D
+    assert len(build_day_doses([m], [], D, NOW, TZ, 60)) == 1
+    m.end_date = D - timedelta(days=1)
+    assert build_day_doses([m], [], D, NOW, TZ, 60) == []

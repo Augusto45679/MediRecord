@@ -75,3 +75,29 @@ def test_other_patients_medicine_404(client, patient):
     mid = client.post("/api/medicines", json=MET, headers=auth(other)).json()["id"]
     assert client.patch(f"/api/medicines/{mid}", json={"name": "X"}, headers=auth(patient)).status_code == 404
     assert client.patch("/api/medicines/abc", json={"name": "X"}, headers=auth(patient)).status_code in (404, 422)
+
+
+def test_interval_and_end_date(client, patient):
+    r = client.post("/api/medicines", json={**MET, "intervalDays": 3, "endDate": "2026-12-06"}, headers=auth(patient))
+    assert r.status_code == 201
+    assert r.json()["intervalDays"] == 3 and r.json()["frequency"] == "Cada 3 días hasta el 06/12"
+    mid = r.json()["id"]
+    r = client.patch(f"/api/medicines/{mid}", json={"intervalDays": 1, "endDate": None}, headers=auth(patient))
+    assert r.json()["endDate"] is None and r.json()["frequency"] == "Todos los días"
+
+
+def test_interval_out_of_range_422(client, patient):
+    assert client.post("/api/medicines", json={**MET, "intervalDays": 0}, headers=auth(patient)).status_code == 422
+
+
+def test_up_to_four_times_and_form(client, patient):
+    r = client.post("/api/medicines", json={**MET, "times": ["08:00", "12:00", "16:00", "20:00"], "form": "gotas"}, headers=auth(patient))
+    assert r.status_code == 201 and len(r.json()["times"]) == 4 and r.json()["form"] == "gotas"
+    assert client.post("/api/medicines", json={**MET, "times": ["08:00", "10:00", "12:00", "14:00", "16:00"]}, headers=auth(patient)).status_code == 422
+    assert client.post("/api/medicines", json={**MET, "form": "pocion"}, headers=auth(patient)).status_code == 422
+
+
+def test_stock_can_be_cleared(client, patient):
+    mid = client.post("/api/medicines", json={**MET, "stock": 10, "stockPerDose": 2}, headers=auth(patient)).json()["id"]
+    r = client.patch(f"/api/medicines/{mid}", json={"stock": None}, headers=auth(patient))
+    assert r.json()["stock"] is None and r.json()["stockPerDose"] == 2

@@ -7,7 +7,7 @@ from app.access import resolve_patient
 from app.clock import get_now
 from app.db import get_session
 from app.models import DoseLog, Medicine, User
-from app.schedule import format_days_frequency, unconfirmed_to_persist
+from app.schedule import format_frequency, unconfirmed_to_persist
 from app.schemas import MedicineIn, MedicineOut, MedicineUpdate
 from app.security import get_current_user
 
@@ -23,7 +23,12 @@ def to_medicine_out(m: Medicine) -> MedicineOut:
         amount=m.amount,
         times=list(m.times),
         days=list(m.days),
-        frequency=format_days_frequency(list(m.days)),
+        interval_days=m.interval_days,
+        end_date=m.end_date,
+        form=m.form,
+        stock=m.stock,
+        stock_per_dose=m.stock_per_dose,
+        frequency=format_frequency(m),
         added_by=m.added_by,
         status=m.status,
     )
@@ -83,11 +88,15 @@ def update_medicine(
 ):
     patient = resolve_patient(user, session)
     m = _get_owned(med_id, patient, session)
-    if data.times is not None or data.days is not None:
+    changed = data.model_fields_set
+    if changed & {"times", "days", "interval_days", "end_date"}:
         _persist_unconfirmed(m, patient, session, now)
         m.schedule_from = now
     for key, value in data.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(m, key, value)
+    for nullable in ("end_date", "stock"):  # null explícito quita el valor
+        if nullable in changed:
+            setattr(m, nullable, getattr(data, nullable))
     session.add(m)
     session.commit()
     session.refresh(m)

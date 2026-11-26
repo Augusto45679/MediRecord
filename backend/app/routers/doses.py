@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
@@ -10,7 +11,7 @@ from app.clock import get_now
 from app.db import get_session
 from app.models import DoseLog, Medicine, User
 from app.schedule import DoseView, build_day_doses, dose_id, hhmm, local_today, minutes, parse_dose_id, to_local
-from app.schemas import DayOut, DoseOut, OmitIn, PostponeIn
+from app.schemas import DayOut, DoseOut, OmitIn, PostponeIn, UpcomingOut
 from app.security import get_current_user
 
 router = APIRouter(prefix="/api")
@@ -61,6 +62,29 @@ def today(
     return _days(patient, session, now, t, t)[0]
 
 
+@router.get("/doses/upcoming", response_model=list[UpcomingOut])
+def upcoming(
+    days: int = Query(default=7, ge=1, le=14),
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+    now: datetime = Depends(get_now),
+):
+    """Tomas pendientes desde ahora hasta `days` días: la app las programa como alarmas locales."""
+    patient = require_patient(user)
+    zone = ZoneInfo(patient.timezone)
+    t = local_today(now, patient.timezone)
+    out: list[UpcomingOut] = []
+    for day_out in reversed(_days(patient, session, now, t, t + timedelta(days=days - 1))):
+        day = date.fromisoformat(day_out.date)
+        for d in day_out.doses:
+            if d.status != "pending":
+                continue
+            at = datetime.combine(day, datetime.min.time(), zone) + timedelta(minutes=minutes(d.postponed_until or d.time))
+            if at > now:
+                out.append(UpcomingOut(dose_id=d.id, medicine_name=d.medicine_name, dose_description=d.dose_description, at=at))
+    return out
+
+
 @router.get("/history", response_model=list[DayOut])
 def history(
     days: int = Query(default=7, ge=1, le=31),
@@ -76,6 +100,7 @@ def history(
 class _Ctx:
     def __init__(self, patient: User, medicine: Medicine, day: date, time: str, log: DoseLog, now: datetime):
         self.patient, self.medicine, self.day, self.time, self.log, self.now = patient, medicine, day, time, log, now
+        self.extra: list = []  # otros objetos a guardar junto con el log
 
 
 def _find_log(session: Session, med_id: int, day: date, time: str) -> DoseLog | None:
@@ -106,6 +131,8 @@ def _load(dose_id: str, patient: User, session: Session, now: datetime) -> _Ctx:
 
 def _save(ctx: _Ctx, session: Session) -> DoseOut:
     session.add(ctx.log)
+    for obj in ctx.extra:
+        session.add(obj)
     session.commit()
     session.refresh(ctx.log)
     p = ctx.patient
@@ -148,12 +175,23 @@ def _patient_ctx(dose_id: str, user: User, session: Session, now: datetime) -> _
     return ctx
 
 
+def _adjust_stock(ctx: _Ctx, sign: int) -> None:
+    m = ctx.medicine
+    if m.stock is not None:
+        m.stock = max(0, m.stock + sign * m.stock_per_dose)
+        ctx.extra.append(m)
+
+
 def _take(ctx: _Ctx) -> None:
+    if ctx.log.status != "taken":
+        _adjust_stock(ctx, -1)
     ctx.log.status, ctx.log.registered_at = "taken", ctx.now
     ctx.log.omission_reason = ctx.log.postponed_until = None
 
 
 def _undo(ctx: _Ctx) -> None:
+    if ctx.log.status == "taken":
+        _adjust_stock(ctx, +1)
     ctx.log.status = "pending"
     ctx.log.registered_at = ctx.log.omission_reason = ctx.log.postponed_until = None
 

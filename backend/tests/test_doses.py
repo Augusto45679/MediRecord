@@ -173,3 +173,36 @@ def test_resume_does_not_backfill_paused_days(client, patient, set_now):
     days = {d["date"]: d["doses"] for d in client.get("/api/history?days=6", headers=auth(patient)).json()}
     assert days["2026-11-24"] == [] and days["2026-11-25"] == []
     assert [x["status"] for x in days["2026-11-22"]] == ["unconfirmed"]
+
+
+def test_take_and_undo_adjust_stock(client, patient, at_1402):
+    body = {"name": "Metformina", "dose": "1 comprimido", "times": ["14:00"], "days": ALL, "stock": 10, "stockPerDose": 2}
+    mid = client.post("/api/medicines", json=body, headers=auth(patient)).json()["id"]
+    did = _today(client, patient)["doses"][0]["id"]
+
+    def stock():
+        return next(m for m in client.get("/api/medicines", headers=auth(patient)).json() if m["id"] == mid)["stock"]
+
+    client.post(f"/api/doses/{did}/take", headers=auth(patient))
+    client.post(f"/api/doses/{did}/take", headers=auth(patient))  # doble toque no descuenta dos veces
+    assert stock() == 8
+    client.post(f"/api/doses/{did}/undo", headers=auth(patient))
+    assert stock() == 10
+
+
+def test_upcoming_lists_future_pending_doses(client, patient, at_1402):
+    _med(client, patient, ["08:00", "20:00"])
+    up = client.get("/api/doses/upcoming?days=2", headers=auth(patient)).json()
+    # hoy ya pasó 08:00 → 20:00 de hoy, 08:00 y 20:00 de mañana
+    assert [u["at"][11:16] for u in up] == ["20:00", "08:00", "20:00"]
+    assert up[0]["at"].endswith("-03:00") and up[0]["medicineName"] == "Metformina"
+
+
+def test_upcoming_skips_taken_and_caregiver_forbidden(client, linked_pair, at_1402):
+    pt, ct = linked_pair
+    _med(client, pt, ["14:30"])
+    did = _today(client, pt)["doses"][0]["id"]
+    client.post(f"/api/doses/{did}/take", headers=auth(pt))
+    up = client.get("/api/doses/upcoming?days=1", headers=auth(pt)).json()
+    assert up == []
+    assert client.get("/api/doses/upcoming", headers=auth(ct)).status_code == 403

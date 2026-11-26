@@ -1,4 +1,5 @@
 import re
+from datetime import date, datetime
 from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -71,14 +72,15 @@ class InviteIn(Camel):
     code: str
 
 
+MedForm = Literal["comprimido", "capsula", "gotas", "jarabe", "inyeccion", "inhalador", "crema", "otro"]
 DayKey = Literal["lun", "mar", "mie", "jue", "vie", "sab", "dom"]
 OmissionReason = Literal["Me olvidé", "Me sentí mal", "Otro motivo"]
 _TIME_RE = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 
 
 def _check_times(v: list[str]) -> list[str]:
-    if not 1 <= len(v) <= 2:
-        raise ValueError("Elegí uno o dos horarios")
+    if not 1 <= len(v) <= 4:
+        raise ValueError("Elegí entre uno y cuatro horarios")
     for t in v:
         if not _TIME_RE.match(t):
             raise ValueError(f"Horario inválido: {t}")
@@ -107,6 +109,11 @@ class MedicineIn(Camel):
     amount: str = Field(default="", max_length=60)
     times: list[str]
     days: list[DayKey]
+    interval_days: int = Field(default=1, ge=1, le=30)
+    end_date: Optional[date] = None
+    form: MedForm = "comprimido"
+    stock: Optional[int] = Field(default=None, ge=0, le=9999)
+    stock_per_dose: int = Field(default=1, ge=1, le=20)
 
     _t = field_validator("times")(classmethod(lambda cls, v: _check_times(v)))
     _d = field_validator("days")(classmethod(lambda cls, v: _check_days(v)))
@@ -120,6 +127,11 @@ class MedicineUpdate(Camel):
     amount: Optional[str] = Field(default=None, max_length=60)
     times: Optional[list[str]] = None
     days: Optional[list[DayKey]] = None
+    interval_days: Optional[int] = Field(default=None, ge=1, le=30)
+    end_date: Optional[date] = None  # enviar null para quitar la fecha de fin
+    form: Optional[MedForm] = None
+    stock: Optional[int] = Field(default=None, ge=0, le=9999)  # null deja de llevar la cuenta
+    stock_per_dose: Optional[int] = Field(default=None, ge=1, le=20)
 
     _t = field_validator("times")(classmethod(lambda cls, v: v if v is None else _check_times(v)))
     _d = field_validator("days")(classmethod(lambda cls, v: v if v is None else _check_days(v)))
@@ -134,6 +146,11 @@ class MedicineOut(Camel):
     amount: str
     times: list[str]
     days: list[str]
+    interval_days: int
+    end_date: Optional[date] = None
+    form: str
+    stock: Optional[int] = None
+    stock_per_dose: int
     frequency: str
     added_by: str
     status: Literal["active", "paused"]
@@ -152,6 +169,14 @@ class DoseOut(Camel):
     is_delayed: bool = False
     postponed_until: Optional[str] = None
     notice_attended: bool = False
+
+
+class UpcomingOut(Camel):
+    """Toma futura para programar una alarma local en el teléfono."""
+    dose_id: str
+    medicine_name: str
+    dose_description: str
+    at: datetime  # con zona horaria del paciente
 
 
 class DayOut(Camel):

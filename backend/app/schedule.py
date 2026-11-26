@@ -83,6 +83,11 @@ def is_scheduled_on(medicine: Medicine, day: date, tz: str) -> bool:
         return False
     if medicine.deleted_at is not None and to_local(medicine.deleted_at, tz).date() <= day:
         return False
+    if medicine.end_date is not None and day > medicine.end_date:
+        return False
+    if medicine.interval_days > 1:
+        start = to_local(schedule_start(medicine), tz).date()
+        return (day - start).days % medicine.interval_days == 0
     return not medicine.days or day_key(day) in medicine.days
 
 
@@ -176,6 +181,17 @@ def format_days_frequency(days: list[str]) -> str:
     if len(ordered) == 1:
         return _ONLY[ordered[0]]
     return ", ".join(_SHORT[d] for d in ordered)
+
+
+def format_frequency(medicine: Medicine) -> str:
+    """Mismo texto que formatFrequency de src/utils/scheduleUtils.ts."""
+    if medicine.interval_days > 1:
+        text = f"Cada {medicine.interval_days} días"
+    else:
+        text = format_days_frequency(list(medicine.days))
+    if medicine.end_date is not None:
+        text += f" hasta el {medicine.end_date.day:02d}/{medicine.end_date.month:02d}"
+    return text
 
 
 HISTORY_LIMIT_DAYS = 31
