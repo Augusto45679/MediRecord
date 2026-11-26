@@ -56,3 +56,11 @@ class DoseLog(SQLModel, table=True):
     omission_reason: Optional[str] = None
     postponed_until: Optional[str] = None
     caregiver_attended_at: Optional[datetime] = None
+
+
+class CareLink(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    patient_id: int = Field(foreign_key="user.id", index=True)
+    caregiver_id: int = Field(foreign_key="user.id", index=True)
+    status: str = "pending"  # 'pending' | 'accepted' | 'rejected'
+    created_at: datetime = Field(default_factory=utcnow)

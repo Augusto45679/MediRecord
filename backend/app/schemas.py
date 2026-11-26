@@ -58,3 +58,13 @@ class SettingsIn(Camel):
     vibration_enabled: Optional[bool] = None
     voice_confirmation_enabled: Optional[bool] = None
     alert_wait_minutes: Optional[AlertWait] = None
+
+
+class LinkOut(Camel):
+    status: Literal["none", "pending", "accepted", "rejected"]
+    other_display_name: Optional[str] = None
+    other_username: Optional[str] = None
+
+
+class InviteIn(Camel):
+    code: str
