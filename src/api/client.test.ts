@@ -46,7 +46,7 @@ describe('api client', () => {
 
   it('422 array detail becomes first msg', async () => {
     fetchReturns(422, { detail: [{ msg: 'Value error, x' }] });
-    const err = await api('/api/x').catch(e => e);
+    const err = (await api('/api/x').catch(e => e)) as ApiError;
     expect(err).toBeInstanceOf(ApiError);
     expect(err.status).toBe(422);
     expect(err.message).toBe('x');
@@ -59,7 +59,7 @@ describe('api client', () => {
 
   it('network failure becomes ApiError with friendly message', async () => {
     fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    const err = await api('/api/x').catch(e => e);
+    const err = (await api('/api/x').catch(e => e)) as ApiError;
     expect(err).toBeInstanceOf(ApiError);
     expect(err.status).toBe(0);
   });
