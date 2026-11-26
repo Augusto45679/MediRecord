@@ -174,6 +174,9 @@ MediRecord implementa una arquitectura híbrida de visualización pensada tanto 
 
 ## 🎛️ Centro de Control de Demostración & Escenarios E2E
 
+> [!NOTE]
+> **Retirado en la versión con backend real.** El panel de demostración y los datos de ejemplo (Roberto/Silvana) se quitaron cuando la app pasó a producción. Esta sección queda como registro del prototipo académico; el código está en el historial de git (commits anteriores a `feat/backend-real`).
+
 Para garantizar defensas de tesis, evaluaciones de cátedra y exposiciones orales en vivo 100% fluidas, la aplicación integra un **Centro de Demostración & Pruebas E2E** flotante en la parte inferior, estructurado en **3 pestañas operativas**:
 
 ```
@@ -328,45 +331,42 @@ MediRecord-main/
 
 ## 🚀 Guía de Ejecución Local y Despliegue en Vercel
 
+La app tiene dos partes: el **frontend** (React + Vite, se publica en Vercel) y la **API** (`backend/`, FastAPI + Postgres, se publica en Railway). Los datos ya no están en el navegador: se cargan desde la API con usuario y contraseña.
+
 ### Requisitos Previos
-* **Node.js**: Versión 18.0.0 o superior (recomendado Node 20 LTS o superior).
-* **Gestor de paquetes**: `npm` (incluido con Node), `pnpm` o `yarn`.
+* Node.js 20+ y npm
+* Python 3.12+ y [uv](https://docs.astral.sh/uv/)
 
-### Instalación y Ejecución en Desarrollo
+### Ejecución en Desarrollo
 
 ```bash
-# 1. Clonar el repositorio (o posicionarse en la carpeta raíz)
-cd /ruta/hacia/MediRecord-main
+# 1) API (terminal 1) — usa SQLite local en backend/medirecord.db
+cd backend
+uv sync
+uv run uvicorn app.main:app --reload --port 8000
 
-# 2. Instalar todas las dependencias del proyecto
+# 2) Frontend (terminal 2)
+cp .env.example .env          # VITE_API_URL=http://localhost:8000
 npm install
-
-# 3. Iniciar el servidor local de desarrollo con HMR
-npm run dev
+npm run dev                   # http://localhost:5173
 ```
 
-El servidor quedará disponible de inmediato en `http://localhost:5173` (o el puerto indicado por la terminal).
-
-### Compilación para Producción y Verificación
+### Tests y Compilación
 
 ```bash
-# Ejecutar verificación de tipos TypeScript y compilar bundle para producción
-npm run build
-
-# Probar localmente el build compilado en modo vista previa (preview)
-npm run preview
+npm test                      # utilidades y cliente API (vitest)
+npm run build                 # tipos + bundle de producción
+cd backend && uv run pytest   # API
 ```
 
-### ☁️ Despliegue en Vercel en 2 Pasos
+### ☁️ Despliegue
 
-El repositorio incluye un archivo [`vercel.json`](file:///home/augusto/Documents/Proyectos/MediRecord-main/vercel.json) preconfigurado con reescrituras de rutas para navegación SPA limpia sin errores 404:
+1. **API en Railway**: seguí [`backend/README.md`](backend/README.md#deploy-en-railway) (Root Directory `backend`, Postgres, `JWT_SECRET`, `CORS_ORIGINS`). Anotá el dominio, por ejemplo `https://medirecord-api.up.railway.app`.
+2. **Frontend en Vercel**: importá el repo (root del proyecto, el `vercel.json` ya está). En *Settings → Environment Variables* agregá `VITE_API_URL=https://<dominio-de-railway>` y hacé deploy.
+3. **CORS**: en Railway, `CORS_ORIGINS` tiene que incluir la URL final de Vercel (sin `/` al final). Si cambió, redeploy de la API.
+4. **Primer uso**: desde el celular, creá la cuenta de la persona que toma las medicinas («Voy a tomar mis medicinas»). Si alguien la acompaña, crea su cuenta con «Acompaño a alguien» e ingresa el código de 6 dígitos que aparece en *Ajustes › Mi persona de apoyo*. La paciente acepta desde la pestaña Hoy.
 
-1. **Vincular repositorio**: Importa este repositorio en tu cuenta de [Vercel](https://vercel.com).
-2. **Auto-detección**: Vercel detectará automáticamente el framework **Vite**:
-   * **Build Command**: `npm run build`
-   * **Output Directory**: `dist`
-   * **Install Command**: `npm install`
-3. Clic en **Deploy**. En menos de 60 segundos la demo interactiva estará en línea con certificado SSL y CDN global.
+> Las alarmas con la app cerrada (notificaciones push) todavía no están implementadas: la app muestra el estado al abrirla y se actualiza sola cada minuto mientras está abierta.
 
 ---
 
