@@ -76,3 +76,25 @@ describe('localApi (app sin conexión)', () => {
     await expect(post('/api/link/invite', { code: '123456' })).rejects.toMatchObject({ status: 400 });
   });
 });
+
+describe('posponer desde la alarma con la app cerrada', () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 10, 26, 7, 0));
+    await post('/api/auth/register', { displayName: 'Ana' });
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('cuenta los 10 minutos desde que se apretó, no desde que se abrió la app', async () => {
+    await post('/api/medicines', { ...MET, times: ['08:00'] });
+    vi.setSystemTime(new Date(2026, 10, 26, 8, 0));
+    const id = (await localApi<DayDoses>('/api/doses/today')).doses[0].id;
+    vi.setSystemTime(new Date(2026, 10, 26, 8, 6)); // abre la app 6 minutos después
+    const d = await post<{ postponedUntil: string }>(`/api/doses/${id}/postpone`, {
+      minutes: 10,
+      pressedAt: new Date(2026, 10, 26, 8, 1).toISOString(),
+    });
+    expect(d.postponedUntil).toBe('08:11');
+  });
+});

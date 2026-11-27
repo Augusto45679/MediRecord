@@ -4,6 +4,7 @@ import { InvitationReceivedScreen } from './InvitationReceivedScreen';
 import { AccessibilitySettingsView } from '../common/AccessibilitySettingsView';
 import { formatLinkCode } from '../../utils/dateFormat';
 import { OFFLINE } from '../../api/client';
+import { AlarmSetupCard } from './AlarmSetupCard';
 import {
   Users,
   Eye,
@@ -180,6 +181,8 @@ export const RobertoAjustesTab: React.FC = () => {
             <Volume2 size={18} /> Probar sonido de ejemplo
           </button>
         </div>
+
+        <AlarmSetupCard />
 
         <div className="card-mint" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-primary-dark)' }}>Recordar otra vez</div>

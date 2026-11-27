@@ -451,7 +451,10 @@ export async function localApi<T>(path: string, init: { method?: string; body?: 
           Object.assign(log, { status: 'pending', registeredAt: null, omissionReason: null, postponedUntil: null });
         } else {
           if (log.status !== 'pending') throw new LocalError(409, 'Esa toma ya está registrada');
-          const base = Math.min(Math.max(minutes(hhmm(now)), minutes(log.time)) + Number(body.minutes ?? 10), 23 * 60 + 59);
+          // Desde la alarma con la app cerrada llega `pressedAt`: se pospone desde ese momento.
+          const pressed = typeof body.pressedAt === 'string' ? new Date(body.pressedAt) : now;
+          const from = isNaN(pressed.getTime()) || pressed > now ? now : pressed;
+          const base = Math.min(Math.max(minutes(hhmm(from)), minutes(log.time)) + Number(body.minutes ?? 10), 23 * 60 + 59);
           log.postponedUntil = `${pad(Math.floor(base / 60))}:${pad(base % 60)}`;
         }
       })

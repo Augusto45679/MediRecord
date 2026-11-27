@@ -15,7 +15,7 @@ Hay dos formas de usarla:
 | Cuenta | No hace falta | Usuario y contraseña |
 | Internet | No hace falta | Sí |
 | Dónde se guardan los datos | En el teléfono | En el servidor (Postgres) |
-| Notificaciones | Alarmas del sistema, aun con la app cerrada | No |
+| Avisos | Alarma tipo despertador, aun con la app cerrada | No |
 | Familiar acompañante | No | Sí, con un código de 6 dígitos |
 
 ## Qué hace
@@ -28,16 +28,21 @@ Hay dos formas de usarla:
 - **Accesibilidad**: tres tamaños de letra, alto contraste, áreas táctiles de 48 px o más, acciones destructivas siempre detrás de una confirmación.
 - **Familiar** (solo web): ve las tomas y recibe el aviso cuando una queda sin confirmar. Puede marcar «ya hablé con ella» para no repetir el aviso.
 
-### Notificaciones en Android
+### Alarma en Android
 
-La app programa las tomas pendientes de los próximos 30 días como alarmas del sistema
-(`@capacitor/local-notifications`). Suenan con la app cerrada y sin conexión. Cada notificación
-trae los botones **Ya la tomé** y **Posponer 10 min**. Al abrir la app o cambiar algo se
-reprograman.
+A la hora de cada toma la app suena **como un despertador**, no como una notificación:
 
-Algunos fabricantes (Xiaomi, Samsung, Huawei) frenan las alarmas de apps instaladas fuera de
-la tienda. Si llegan tarde: *Ajustes → Apps → MediRecord*, activar **Alarmas y recordatorios** y
-poner **Batería → Sin restricciones**.
+- Usa `AlarmManager.setAlarmClock`: dispara a horario exacto aunque el teléfono esté en reposo.
+- Suena en loop por el volumen de **alarma** (se escucha con el teléfono en silencio) y vibra, hasta que la persona responda o pasen 10 minutos.
+- Enciende la pantalla y se muestra sobre el bloqueo con dos botones grandes: **Ya la tomé** y **Posponer 10 minutos**. Si suenan dos medicinas a la vez, al responder una aparece la otra.
+- Las respuestas funcionan con la app cerrada: quedan guardadas y se registran al abrirla.
+- Se programan los próximos 30 días y se reprograman solas al reiniciar el teléfono.
+
+El código nativo está en `android/app/src/main/java/ar/medirecord/app/alarm/` y se usa desde
+`src/native/alarms.ts`. En *Ajustes → Avisos y sonido* la app muestra qué permisos faltan
+(avisos, alarmas exactas, pantalla completa, batería), con acceso directo a cada uno, y un botón
+**Probar la alarma**. Algunos fabricantes (Xiaomi, Samsung, Huawei) frenan las alarmas para
+ahorrar batería: ahí conviene quitar el límite.
 
 ## Instalar la app Android
 

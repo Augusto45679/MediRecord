@@ -1,13 +1,14 @@
 /**
- * Alarmas locales en la app de Android (Capacitor). En el navegador no hace nada.
+ * Alarmas tipo despertador en la app Android. En el navegador no hace nada.
  *
- * Cada sincronización borra las alarmas programadas y vuelve a programar las tomas
- * pendientes de los próximos días. Así suenan aunque la app esté cerrada, sin internet
- * y aunque el servidor esté dormido.
+ * La parte nativa (android/.../alarm/) programa cada toma con AlarmManager.setAlarmClock y, a la
+ * hora, suena en loop por el canal de alarma con una pantalla completa sobre el bloqueo y los
+ * botones "Ya la tomé" / "Posponer 10 minutos". Esas respuestas se guardan aunque la app esté
+ * cerrada y se registran acá la próxima vez que la app corre (consumeAlarmActions).
  */
-import { Capacitor } from '@capacitor/core';
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { api } from '../api/client';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import type { PluginListenerHandle } from '@capacitor/core';
+import { api, ApiError } from '../api/client';
 
 interface Upcoming {
   doseId: string;
@@ -16,64 +17,92 @@ interface Upcoming {
   at: string;
 }
 
-const CHANNEL = 'tomas';
-const ACTIONS = 'toma';
-// Android limita las alarmas pendientes (~500): 30 días alcanzan aunque no se abra la app en semanas.
+export interface AlarmPrefs {
+  sound: boolean;
+  vibration: boolean;
+}
+
+export interface AlarmStatus {
+  notifications: boolean;
+  exactAlarms: boolean;
+  fullScreen: boolean;
+  batteryUnrestricted: boolean;
+}
+
+export type AlarmSetting = 'notifications' | 'exactAlarms' | 'fullScreen' | 'battery' | 'app';
+
+interface MedAlarmPlugin {
+  schedule(opts: {
+    alarms: { id: number; at: number; doseId: string; title: string; body: string }[];
+    sound: boolean;
+    vibration: boolean;
+  }): Promise<void>;
+  cancelAll(): Promise<void>;
+  consumeActions(): Promise<{ actions: { action: 'take' | 'postpone'; doseId: string; at: number }[] }>;
+  requeueActions(opts: { actions: { action: 'take' | 'postpone'; doseId: string; at: number }[] }): Promise<void>;
+  status(): Promise<AlarmStatus>;
+  requestNotifications(): Promise<{ granted: boolean }>;
+  openSettings(opts: { which: AlarmSetting }): Promise<void>;
+  test(opts: { seconds: number }): Promise<void>;
+  addListener(event: 'alarmAction', fn: () => void): Promise<PluginListenerHandle>;
+}
+
+const MedAlarm = registerPlugin<MedAlarmPlugin>('MedAlarm');
+
+// 30 días alcanzan aunque no se abra la app en semanas; Android limita las alarmas pendientes (~500).
 const DAYS_AHEAD = 30;
 const MAX_ALARMS = 400;
-let ready: Promise<boolean> | null = null;
+const TEST_ALARM_ID = 999_999; // reservado en MedAlarmPlugin.test
 
 export const isNativeApp = () => Capacitor.isNativePlatform();
 
-/** Id numérico estable (Android pide int32) a partir del id de la toma. */
-function numericId(doseId: string): number {
+/** Id numérico estable (Android pide int32 > 0) a partir del id de la toma. */
+export function numericId(doseId: string): number {
   let h = 0;
   for (let i = 0; i < doseId.length; i++) h = (Math.imul(31, h) + doseId.charCodeAt(i)) | 0;
-  return Math.abs(h) || 1;
+  const id = (Math.abs(h) % 2_000_000_000) + 1;
+  return id === TEST_ALARM_ID ? id + 1 : id;
 }
 
-function setup(): Promise<boolean> {
-  ready ??= (async () => {
-    let perm = await LocalNotifications.checkPermissions();
-    if (perm.display !== 'granted') perm = await LocalNotifications.requestPermissions();
-    if (perm.display !== 'granted') return false;
-    await LocalNotifications.createChannel({
-      id: CHANNEL,
-      name: 'Recordatorios de tomas',
-      description: 'Avisos a la hora de cada medicina',
-      importance: 5,
-      visibility: 1,
-      vibration: true,
-    });
-    await LocalNotifications.registerActionTypes({
-      types: [
-        {
-          id: ACTIONS,
-          actions: [
-            { id: 'take', title: 'Ya la tomé' },
-            { id: 'postpone', title: 'Posponer 10 min' },
-          ],
-        },
-      ],
-    });
-    return true;
-  })().catch(() => {
-    ready = null;
-    return false;
-  });
-  return ready;
-}
+let asked = false;
+let prefs: AlarmPrefs = { sound: true, vibration: true };
 
 export async function clearAlarms(): Promise<void> {
-  if (!isNativeApp()) return;
-  const { notifications } = await LocalNotifications.getPending();
-  if (notifications.length) await LocalNotifications.cancel({ notifications: notifications.map(n => ({ id: n.id })) });
+  if (isNativeApp()) await MedAlarm.cancelAll();
+}
+
+/**
+ * Registra en la base local las respuestas dadas desde la alarma con la app cerrada.
+ * Devuelve true si había alguna (para refrescar la pantalla).
+ */
+export async function consumeAlarmActions(): Promise<boolean> {
+  if (!isNativeApp()) return false;
+  const { actions } = await MedAlarm.consumeActions();
+  const failed: typeof actions = [];
+  for (const a of actions) {
+    try {
+      if (a.action === 'take') {
+        await api(`/api/doses/${a.doseId}/take`, { method: 'POST' });
+      } else {
+        // `pressedAt`: posponer cuenta desde que se apretó el botón, no desde que se abrió la app.
+        const pressedAt = new Date(a.at).toISOString();
+        await api(`/api/doses/${a.doseId}/postpone`, { method: 'POST', body: { minutes: 10, pressedAt } });
+      }
+    } catch (err) {
+      // 404 (toma de otro día) y 409 (ya registrada) no tienen arreglo: se descartan.
+      // Cualquier otro error se reintenta después, para no perder lo que apretó la persona.
+      if (!(err instanceof ApiError && (err.status === 404 || err.status === 409))) failed.push(a);
+    }
+  }
+  if (failed.length) await MedAlarm.requeueActions({ actions: failed });
+  return actions.length > failed.length;
 }
 
 let syncing: Promise<void> | null = null;
 let rerun = false;
 
-export function syncAlarms(): Promise<void> {
+export function syncAlarms(next?: AlarmPrefs): Promise<void> {
+  if (next) prefs = next;
   if (!isNativeApp()) return Promise.resolve();
   if (syncing) {
     // Hay una sincronización en curso con datos quizá viejos (p. ej. antes de marcar una toma).
@@ -82,23 +111,26 @@ export function syncAlarms(): Promise<void> {
   }
   syncing = (async () => {
     try {
-      if (!(await setup())) return;
+      if (!asked) {
+        asked = true;
+        await MedAlarm.requestNotifications();
+      }
+      // Primero las respuestas pendientes: si se pospuso desde la alarma, el nuevo horario sale de acá.
+      await consumeAlarmActions();
       const upcoming = await api<Upcoming[]>(`/api/doses/upcoming?days=${DAYS_AHEAD}`);
-      await clearAlarms();
-      if (upcoming.length === 0) return;
-      await LocalNotifications.schedule({
-        notifications: upcoming.slice(0, MAX_ALARMS).map(u => ({
+      await MedAlarm.schedule({
+        sound: prefs.sound,
+        vibration: prefs.vibration,
+        alarms: upcoming.slice(0, MAX_ALARMS).map(u => ({
           id: numericId(u.doseId),
-          channelId: CHANNEL,
-          actionTypeId: ACTIONS,
+          at: new Date(u.at).getTime(),
+          doseId: u.doseId,
           title: `Hora de tu ${u.medicineName}`,
           body: u.doseDescription,
-          schedule: { at: new Date(u.at), allowWhileIdle: true },
-          extra: { doseId: u.doseId },
         })),
       });
     } catch {
-      // Sin conexión: quedan las alarmas que ya estaban programadas.
+      // Si algo falla quedan programadas las alarmas anteriores.
     } finally {
       syncing = null;
       if (rerun) {
@@ -110,24 +142,17 @@ export function syncAlarms(): Promise<void> {
   return syncing;
 }
 
-/**
- * Botones de la notificación. Llama a `onChange` después de registrar la toma
- * para que la pantalla se actualice; las alarmas se reprograman en ese refresh.
- */
+/** Respuestas dadas desde la alarma mientras la app está abierta. */
 export function listenAlarmActions(onChange: () => void): () => void {
   if (!isNativeApp()) return () => {};
-  const handle = LocalNotifications.addListener('localNotificationActionPerformed', async ({ actionId, notification }) => {
-    const doseId = notification.extra?.doseId as string | undefined;
-    if (!doseId) return;
-    try {
-      if (actionId === 'take') await api(`/api/doses/${doseId}/take`, { method: 'POST' });
-      else if (actionId === 'postpone') await api(`/api/doses/${doseId}/postpone`, { method: 'POST', body: { minutes: 10 } });
-    } catch {
-      // Toma de otro día o ya registrada: se ignora, la app muestra el estado real.
-    }
-    onChange();
+  const handle = MedAlarm.addListener('alarmAction', async () => {
+    if (await consumeAlarmActions()) onChange();
   });
   return () => {
     void handle.then(h => h.remove());
   };
 }
+
+export const alarmStatus = (): Promise<AlarmStatus | null> => (isNativeApp() ? MedAlarm.status() : Promise.resolve(null));
+export const openAlarmSettings = (which: AlarmSetting) => MedAlarm.openSettings({ which });
+export const testAlarm = (seconds = 5) => MedAlarm.test({ seconds });

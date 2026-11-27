@@ -13,7 +13,7 @@ import type {
 } from '../types';
 import { api, ApiError, getToken, setOnUnauthorized, setToken } from '../api/client';
 import type { RegisterData } from '../components/common/AuthScreen';
-import { clearAlarms, listenAlarmActions, syncAlarms } from '../native/alarms';
+import { clearAlarms, consumeAlarmActions, listenAlarmActions, syncAlarms } from '../native/alarms';
 
 interface ToastMessage {
   id: string;
@@ -137,6 +137,8 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const doRefresh = useCallback(async () => {
     const gen = ++generation.current;
+    // Respuestas dadas desde la alarma con la app cerrada ("Ya la tomé"): se registran antes de leer.
+    await consumeAlarmActions().catch(() => false);
     const [user, link] = await Promise.all([api<ApiUser>('/api/me'), api<LinkInfo>('/api/link')]);
     const canSeePatient = user.role === 'patient' || link.status === 'accepted';
     let medicines: Medicine[] = [];
@@ -150,7 +152,7 @@ export const MediRecordProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ]);
     }
     if (gen !== generation.current) return; // llegó tarde: hubo otro refresh, login o logout
-    if (user.role === 'patient') void syncAlarms(); // solo en la app Android
+    if (user.role === 'patient') void syncAlarms({ sound: user.soundEnabled, vibration: user.vibrationEnabled }); // solo en la app Android
     setState(prev => ({
       ...prev,
       ...fromUser(user),
